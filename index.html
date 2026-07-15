@@ -72,6 +72,29 @@ body{font-family:'PingFang SC','Microsoft YaHei',sans-serif;-webkit-user-select:
 }
 @keyframes hintPulse{0%,100%{opacity:0.2}50%{opacity:0.5}}
 
+.float-text.greeting{
+  font-size:clamp(32px,10vw,64px);left:50%;top:36%;
+  transform:translate(-50%,-50%);text-align:center;
+  animation:greetingPulse 4s ease-in-out infinite;
+  white-space:nowrap;font-weight:300;
+  letter-spacing:6px;
+  color:rgba(200,230,255,0.9);
+  text-shadow:0 0 40px rgba(100,180,255,0.5),0 0 100px rgba(100,180,255,0.2);
+  transition:color 0.8s,text-shadow 0.8s;
+}
+.float-text.signature{
+  font-size:clamp(16px,3.5vw,28px);left:50%;top:55%;
+  transform:translate(-50%,-50%);text-align:right;
+  opacity:0.8;font-weight:300;letter-spacing:5px;
+  white-space:nowrap;
+  color:rgba(200,230,255,0.65);
+  text-shadow:0 0 20px rgba(100,180,255,0.3),0 0 60px rgba(100,180,255,0.1);
+  transition:color 0.8s,text-shadow 0.8s;
+}
+@keyframes greetingPulse{
+  0%,100%{transform:translate(-50%,-50%) scale(1)}
+  50%{transform:translate(-50%,-50%) scale(1.06)}
+}
 .effect-hud{
   position:fixed;top:18px;left:50%;transform:translateX(-50%);
   z-index:15;pointer-events:none;
@@ -153,6 +176,8 @@ body{font-family:'PingFang SC','Microsoft YaHei',sans-serif;-webkit-user-select:
   <div class="float-text float-3" id="ft3">Forever</div>
   <div class="float-text float-4" id="ft4">Love</div>
   <div class="float-text float-5" id="ft5">You</div>
+  <div class="float-text greeting" id="greetingText" style="display:none"></div>
+  <div class="float-text signature" id="signatureText" style="display:none"></div>
   <div class="hint" id="hintText">✦ 轻触 · 粒子绽放 ✦</div>
 </div>
 
@@ -168,6 +193,9 @@ body{font-family:'PingFang SC','Microsoft YaHei',sans-serif;-webkit-user-select:
   <div class="bg"></div>
   <div class="card">
     <h2>✦ 设 置 ✦</h2>
+    <div class="field"><label>收 件 人（留空则隐藏）</label><input type="text" id="toInput" maxlength="12" placeholder="小美"></div>
+    <div class="field"><label>寄 件 人（留空则隐藏）</label><input type="text" id="fromInput" maxlength="12" placeholder="小明"></div>
+    <div style="height:4px"></div>
     <div class="field"><label>文 字 一</label><input type="text" id="input1" maxlength="12" value="520"></div>
     <div class="field"><label>文 字 二</label><input type="text" id="input2" maxlength="20" value="I Love You"></div>
     <div class="field"><label>文 字 三</label><input type="text" id="input3" maxlength="16" value="Forever"></div>
@@ -631,11 +659,36 @@ var textInputs = [1,2,3,4,5].map(function(i){return document.getElementById('inp
 var floatTexts = [1,2,3,4,5].map(function(i){return document.getElementById('ft'+i);});
 var hintText = document.getElementById('hintText');
 var effectHud = document.getElementById('effectHud');
+var toInput = document.getElementById('toInput');
+var fromInput = document.getElementById('fromInput');
+var greetingText = document.getElementById('greetingText');
+var signatureText = document.getElementById('signatureText');
+
+function updateGreeting() {
+  var v = toInput.value.trim();
+  if (v) {
+    greetingText.textContent = v + '\uFF0C\u6211\u559C\u6B22\u4F60 \u2764\uFE0F';
+    greetingText.style.display = 'block';
+  } else {
+    greetingText.style.display = 'none';
+  }
+}
+function updateSignature() {
+  var v = fromInput.value.trim();
+  if (v) {
+    signatureText.textContent = '\u2014\u2014 ' + v;
+    signatureText.style.display = 'block';
+  } else {
+    signatureText.style.display = 'none';
+  }
+}
 
 gearBtn.addEventListener('click', function(){panel.classList.add('show');});
 closePanelBtn.addEventListener('click', function(){panel.classList.remove('show');});
 panel.querySelector('.bg').addEventListener('click', function(){panel.classList.remove('show');});
 textInputs.forEach(function(inp,i){inp.addEventListener('input',function(){floatTexts[i].textContent=inp.value||'\u00B7';});});
+toInput.addEventListener('input', updateGreeting);
+fromInput.addEventListener('input', updateSignature);
 
 document.querySelectorAll('#themePicker .dot').forEach(function(el){
   el.addEventListener('click',function(){
@@ -648,6 +701,8 @@ document.querySelectorAll('#themePicker .dot').forEach(function(el){
     var cc=new THREE.Color(themeColors.out[0]),cl2=cc.clone().lerp(new THREE.Color('#ffffff'),0.3);
     var rgba=function(cl,a){return'rgba('+Math.floor(cl.r*255)+','+Math.floor(cl.g*255)+','+Math.floor(cl.b*255)+','+a+')';};
     floatTexts.forEach(function(el2,i){var a=[0.85,0.7,0.55,0.6,0.4][i];el2.style.color=rgba(cl2,a);el2.style.textShadow='0 0 30px '+rgba(cc,0.4)+',0 0 80px '+rgba(cc,0.15);});
+    greetingText.style.color=rgba(cl2,0.9);greetingText.style.textShadow='0 0 40px '+rgba(cc,0.5)+',0 0 100px '+rgba(cc,0.2);
+    signatureText.style.color=rgba(cl2,0.65);signatureText.style.textShadow='0 0 20px '+rgba(cc,0.3)+',0 0 60px '+rgba(cc,0.1);
     hintText.style.color=rgba(cc,0.2);
     effectHud.style.color=rgba(cl2,0.25);
   });
@@ -665,6 +720,8 @@ window.addEventListener('resize',function(){
   keys.forEach(function(k,i){if(q.has(k)){textInputs[i].value=decodeURIComponent(q.get(k));floatTexts[i].textContent=textInputs[i].value;hasAny=1;}});
   if(!hasAny&&q.has('text')){var v=decodeURIComponent(q.get('text'));textInputs.forEach(function(inp,i){inp.value=v;floatTexts[i].textContent=v||'\u00B7';});}
   if(q.has('t')&&THEMES[q.get('t')]){currentTheme=q.get('t');themeColors=THEMES[currentTheme];scene.background=new THREE.Color(themeColors.bg);}
+  if(q.has('to')){toInput.value=decodeURIComponent(q.get('to'));updateGreeting();}
+  if(q.has('from')){fromInput.value=decodeURIComponent(q.get('from'));updateSignature();}
 })();
 
 document.body.style.background=themeColors.bg;
