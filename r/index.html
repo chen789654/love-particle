@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>正在跳转...</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:#0a0a14;color:#889;font-family:"PingFang SC","Microsoft YaHei",sans-serif;display:flex;align-items:center;justify-content:center;min-height:100vh;font-size:14px;letter-spacing:2px}
+.loading{animation:pulse 2s ease-in-out infinite}
+@keyframes pulse{0%,100%{opacity:0.2}50%{opacity:0.5}}
+</style>
+</head>
+<body>
+<div class="loading">✦ 加载中 ✦</div>
+<script>
+(function(){
+  // 从 hash 中取短码: /r/#abc → abc
+  // 也支持 /r/?code=abc
+  var code = '';
+  var hash = location.hash.replace(/^#/, '');
+  if (hash) {
+    code = hash;
+  } else {
+    var params = new URLSearchParams(location.search);
+    if (params.has('code')) code = params.get('code');
+  }
+  code = code.toLowerCase().trim();
+
+  if (!code || !/^[a-z2-9]{4,6}$/.test(code)) {
+    document.body.innerHTML = '<div style="color:#555;text-align:center"><div style="font-size:32px;margin-bottom:16px">💫</div>链接无效<br>请检查链接是否正确</div>';
+    return;
+  }
+
+  var xhr = new XMLHttpRequest();
+  xhr.open('GET', 'links.json?_t=' + Date.now(), true);
+  xhr.onreadystatechange = function() {
+    if (xhr.readyState !== 4) return;
+    if (xhr.status !== 200) {
+      document.body.innerHTML = '<div style="color:#555;text-align:center">加载失败，请稍后再试</div>';
+      return;
+    }
+    try {
+      var db = JSON.parse(xhr.responseText);
+      var entry = db[code];
+      if (!entry) {
+        document.body.innerHTML = '<div style="color:#555;text-align:center">链接已失效</div>';
+        return;
+      }
+      // 组装参数跳转
+      var params = [];
+      if (entry.to) params.push('to=' + encodeURIComponent(entry.to));
+      if (entry.from) params.push('from=' + encodeURIComponent(entry.from));
+      if (entry.t && entry.t !== 'pink') params.push('t=' + encodeURIComponent(entry.t));
+
+      var target = '../' + (params.length ? '?' + params.join('&') : '');
+      // 记录访问时间（可选）
+      location.href = target;
+    } catch(e) {
+      document.body.innerHTML = '<div style="color:#555;text-align:center">数据错误</div>';
+    }
+  };
+  xhr.send();
+})();
+</script>
+</body>
+</html>
