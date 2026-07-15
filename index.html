@@ -1,0 +1,674 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no">
+<title>3D 爱心粒子</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:#050510;overflow:hidden;height:100%;position:fixed;width:100%}
+body{font-family:'PingFang SC','Microsoft YaHei',sans-serif;-webkit-user-select:none;user-select:none}
+
+#three-canvas{display:block;width:100%;height:100%}
+
+.text-layer{
+  position:fixed;top:0;left:0;width:100%;height:100%;
+  pointer-events:none;z-index:10;
+  overflow:hidden;
+}
+.text-layer .float-text{
+  position:absolute;font-weight:300;
+  letter-spacing:4px;
+  color:rgba(200,230,255,0.85);
+  text-shadow:0 0 30px rgba(100,180,255,0.4),0 0 80px rgba(100,180,255,0.15);
+  transition:color 0.8s,text-shadow 0.8s;
+  white-space:nowrap;
+}
+.float-1{font-size:clamp(28px,7vw,56px);left:5%;top:72%;animation:drift1 9s ease-in-out infinite}
+.float-2{font-size:clamp(18px,4vw,32px);left:55%;top:15%;animation:drift2 11s ease-in-out infinite;opacity:0.7}
+.float-3{font-size:clamp(14px,3.2vw,26px);left:8%;top:10%;animation:drift3 8s ease-in-out infinite;opacity:0.55}
+.float-4{font-size:clamp(16px,3.5vw,28px);left:70%;top:55%;animation:drift4 12s ease-in-out infinite;opacity:0.6}
+.float-5{font-size:clamp(12px,2.8vw,22px);left:40%;top:5%;animation:drift5 10s ease-in-out infinite;opacity:0.4}
+
+@keyframes drift1{
+  0%,100%{transform:translate(0,0)}
+  25%{transform:translate(30px,-25px)}
+  50%{transform:translate(-20px,-45px)}
+  75%{transform:translate(15px,-15px)}
+}
+@keyframes drift2{
+  0%,100%{transform:translate(0,0)}
+  20%{transform:translate(-35px,-20px)}
+  40%{transform:translate(15px,-40px)}
+  60%{transform:translate(25px,5px)}
+  80%{transform:translate(-10px,-30px)}
+}
+@keyframes drift3{
+  0%,100%{transform:translate(0,0)}
+  33%{transform:translate(25px,-35px)}
+  66%{transform:translate(-30px,-10px)}
+}
+@keyframes drift4{
+  0%,100%{transform:translate(0,0)}
+  25%{transform:translate(-20px,20px)}
+  50%{transform:translate(30px,-20px)}
+  75%{transform:translate(-15px,10px)}
+}
+@keyframes drift5{
+  0%,100%{transform:translate(0,0)}
+  20%{transform:translate(20px,-30px)}
+  40%{transform:translate(-25px,5px)}
+  60%{transform:translate(10px,-25px)}
+  80%{transform:translate(-15px,0)}
+}
+
+.text-layer .hint{
+  position:fixed;bottom:calc(3.5vh + env(safe-area-inset-bottom,0px));
+  left:50%;transform:translateX(-50%);
+  font-size:12px;letter-spacing:2px;
+  color:rgba(100,150,255,0.2);
+  animation:hintPulse 3s ease-in-out infinite;
+  transition:color 0.8s;
+}
+@keyframes hintPulse{0%,100%{opacity:0.2}50%{opacity:0.5}}
+
+.effect-hud{
+  position:fixed;top:18px;left:50%;transform:translateX(-50%);
+  z-index:15;pointer-events:none;
+  display:flex;align-items:center;gap:14px;
+  font-size:13px;letter-spacing:2px;
+  color:rgba(255,255,255,0.2);
+  transition:color 0.5s;
+}
+.effect-hud .arrow{font-size:11px;opacity:0.3}
+.effect-hud .label{font-size:13px;letter-spacing:3px;font-weight:300;white-space:nowrap}
+
+.gear{
+  position:fixed;top:16px;right:16px;z-index:100;
+  width:38px;height:38px;border-radius:50%;
+  background:rgba(255,255,255,0.03);
+  border:1px solid rgba(255,255,255,0.06);
+  color:rgba(255,255,255,0.25);font-size:15px;
+  cursor:pointer;transition:all 0.3s;
+  display:flex;align-items:center;justify-content:center;
+  backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);
+}
+.gear:hover{background:rgba(255,255,255,0.08);color:rgba(255,255,255,0.5)}
+
+.panel{
+  position:fixed;top:0;left:0;width:100%;height:100%;
+  pointer-events:none;z-index:200;
+  display:flex;align-items:center;justify-content:center;
+  opacity:0;transition:opacity 0.5s;
+}
+.panel.show{opacity:1;pointer-events:auto}
+.panel .bg{
+  position:absolute;top:0;left:0;width:100%;height:100%;
+  background:rgba(0,0,0,0.5);-webkit-backdrop-filter:blur(24px);
+  backdrop-filter:blur(24px);
+}
+.panel .card{
+  position:relative;width:280px;max-width:84vw;
+  background:rgba(12,18,35,0.85);
+  border:1px solid rgba(100,180,255,0.08);
+  border-radius:18px;padding:28px 22px 22px;
+  transform:translateY(20px);transition:transform 0.5s;
+}
+.panel.show .card{transform:translateY(0)}
+.panel .card h2{font-size:14px;font-weight:300;letter-spacing:3px;color:rgba(180,220,255,0.5);margin-bottom:16px;text-align:center}
+.panel .field{margin-bottom:12px}
+.panel .field label{display:block;font-size:11px;color:rgba(255,255,255,0.2);letter-spacing:1px;margin-bottom:4px}
+.panel .field input{
+  width:100%;padding:8px 12px;border-radius:8px;
+  background:rgba(255,255,255,0.03);
+  border:1px solid rgba(255,255,255,0.05);
+  color:#dde;font-size:14px;outline:none;
+  transition:border-color 0.3s;text-align:center;
+}
+.panel .field input:focus{border-color:rgba(100,180,255,0.25)}
+.panel .themes{display:flex;gap:8px;justify-content:center;margin-top:4px;flex-wrap:wrap}
+.panel .themes .dot{
+  width:26px;height:26px;border-radius:50%;cursor:pointer;
+  border:2px solid transparent;transition:all 0.25s;
+}
+.panel .themes .dot.active{border-color:rgba(255,255,255,0.6);transform:scale(1.1)}
+.panel .close-card{
+  display:block;margin:14px auto 0;
+  background:rgba(255,255,255,0.03);
+  border:1px solid rgba(255,255,255,0.05);
+  color:rgba(255,255,255,0.3);font-size:12px;
+  padding:6px 20px;border-radius:16px;cursor:pointer;
+  transition:all 0.3s;letter-spacing:1px;
+}
+.panel .close-card:hover{background:rgba(255,255,255,0.06);color:rgba(255,255,255,0.45)}
+</style>
+</head>
+<body>
+
+<div id="container" style="width:100%;height:100%"></div>
+
+<div class="text-layer">
+  <div class="float-text float-1" id="ft1">520</div>
+  <div class="float-text float-2" id="ft2">I Love You</div>
+  <div class="float-text float-3" id="ft3">Forever</div>
+  <div class="float-text float-4" id="ft4">Love</div>
+  <div class="float-text float-5" id="ft5">You</div>
+  <div class="hint" id="hintText">✦ 轻触 · 粒子绽放 ✦</div>
+</div>
+
+<div class="effect-hud" id="effectHud">
+  <span class="arrow">◂</span>
+  <span class="label" id="effectLabel">双爱心流水</span>
+  <span class="arrow">▸</span>
+</div>
+
+<div class="gear" id="gearBtn">✦</div>
+
+<div class="panel" id="panel">
+  <div class="bg"></div>
+  <div class="card">
+    <h2>✦ 设 置 ✦</h2>
+    <div class="field"><label>文 字 一</label><input type="text" id="input1" maxlength="12" value="520"></div>
+    <div class="field"><label>文 字 二</label><input type="text" id="input2" maxlength="20" value="I Love You"></div>
+    <div class="field"><label>文 字 三</label><input type="text" id="input3" maxlength="16" value="Forever"></div>
+    <div class="field"><label>文 字 四</label><input type="text" id="input4" maxlength="16" value="Love"></div>
+    <div class="field"><label>文 字 五</label><input type="text" id="input5" maxlength="20" value="You"></div>
+    <div class="field"><label>色 调</label>
+      <div class="themes" id="themePicker">
+        <div class="dot active" style="background:linear-gradient(135deg,#0077ff,#00d4ff)" data-t="ocean"></div>
+        <div class="dot" style="background:linear-gradient(135deg,#ff4d8a,#ff80ab)" data-t="pink"></div>
+        <div class="dot" style="background:linear-gradient(135deg,#6c5ce7,#a29bfe)" data-t="purple"></div>
+        <div class="dot" style="background:linear-gradient(135deg,#fdcb6e,#f39c12)" data-t="gold"></div>
+        <div class="dot" style="background:linear-gradient(135deg,#00b894,#55efc4)" data-t="emerald"></div>
+        <div class="dot" style="background:linear-gradient(135deg,#e74c3c,#ff6b6b)" data-t="red"></div>
+        <div class="dot" style="background:linear-gradient(135deg,#ff6b35,#ffd700)" data-t="sunset"></div>
+        <div class="dot" style="background:linear-gradient(135deg,#a8e6cf,#dcf0fa)" data-t="ice"></div>
+        <div class="dot" style="background:linear-gradient(135deg,#ffb7c5,#ffdde1)" data-t="sakura"></div>
+        <div class="dot" style="background:linear-gradient(135deg,#9b59b6,#e056fd)" data-t="nebula"></div>
+      </div>
+    </div>
+    <button class="close-card" id="closePanel">完 成</button>
+  </div>
+</div>
+
+<script src="https://unpkg.com/three@0.157.0/build/three.min.js"></script>
+<script>
+
+var STAR_COUNT = 800;
+var THEMES = {
+  ocean:{out:['#0077ff','#00d4ff'],inner:['#0044aa','#0088ff'],bg:'#050510'},
+  pink:{out:['#ff4d8a','#ff80ab'],inner:['#cc2255','#ff4d8a'],bg:'#10050a'},
+  purple:{out:['#6c5ce7','#a29bfe'],inner:['#4433aa','#7c6cf0'],bg:'#080510'},
+  gold:{out:['#fdcb6e','#f39c12'],inner:['#bb7700','#fdd835'],bg:'#100a05'},
+  emerald:{out:['#00b894','#55efc4'],inner:['#008866','#00d4aa'],bg:'#051008'},
+  red:{out:['#e74c3c','#ff6b6b'],inner:['#8e1a1a','#e74c3c'],bg:'#0a0505'},
+  sunset:{out:['#ff6b35','#ffd700'],inner:['#cc4400','#ff9933'],bg:'#0a0805'},
+  ice:{out:['#7ec8e3','#dcf0fa'],inner:['#4a9bb5','#a8d8ea'],bg:'#05080a'},
+  sakura:{out:['#ffb7c5','#ffdde1'],inner:['#ff8da1','#ffb7c5'],bg:'#0a0508'},
+  nebula:{out:['#9b59b6','#e056fd'],inner:['#5b2c8a','#9b59b6'],bg:'#050510'}
+};
+var currentTheme = 'ocean';
+var themeColors = THEMES[currentTheme];
+
+var container = document.getElementById('container');
+var scene = new THREE.Scene();
+scene.background = new THREE.Color(themeColors.bg);
+var camera = new THREE.PerspectiveCamera(60, innerWidth/innerHeight, 0.1, 100);
+camera.position.set(0, 0.15, 3.5);
+camera.lookAt(0, -0.05, 0);
+var renderer = new THREE.WebGLRenderer({antialias:1,alpha:0});
+renderer.setSize(innerWidth, innerHeight);
+renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+renderer.domElement.id = 'three-canvas';
+container.prepend(renderer.domElement);
+
+function makeGlowTexture() {
+  var s = 256, cv = document.createElement('canvas');
+  cv.width = cv.height = s;
+  var ctx = cv.getContext('2d');
+  var g = ctx.createRadialGradient(s/2,s/2,0,s/2,s/2,s/2);
+  g.addColorStop(0,'rgba(255,255,255,1)');
+  g.addColorStop(0.35,'rgba(255,255,255,1)');
+  g.addColorStop(0.55,'rgba(255,255,255,0.75)');
+  g.addColorStop(0.75,'rgba(255,255,255,0.3)');
+  g.addColorStop(1,'rgba(255,255,255,0)');
+  ctx.fillStyle = g; ctx.fillRect(0,0,s,s);
+  return new THREE.CanvasTexture(cv);
+}
+var glowTex = makeGlowTexture();
+
+var starGeo = new THREE.BufferGeometry();
+var starPos = new Float32Array(STAR_COUNT*3);
+for (var i = 0; i < STAR_COUNT; i++) {
+  var i3=i*3;
+  starPos[i3]=(Math.random()-0.5)*60;
+  starPos[i3+1]=(Math.random()-0.5)*40;
+  starPos[i3+2]=-(Math.random()*20+5);
+}
+starGeo.setAttribute('position', new THREE.BufferAttribute(starPos, 3));
+var starMat = new THREE.PointsMaterial({size:0.06,map:glowTex,blending:THREE.AdditiveBlending,depthWrite:0,transparent:1,opacity:0.5,color:0x8899bb,sizeAttenuation:1});
+var starMesh = new THREE.Points(starGeo, starMat);
+scene.add(starMesh);
+var currentIdx = 0;
+var currentEffect = null;
+var effectLabel = document.getElementById('effectLabel');
+
+function makeMat(color, size, opacity) {
+  return new THREE.PointsMaterial({
+    size:size||0.5, map:glowTex, blending:THREE.AdditiveBlending,
+    depthWrite:0, transparent:1, opacity:opacity||0.95,
+    vertexColors:!!color, sizeAttenuation:1, color:color||0xffffff
+  });
+}
+
+function createSimpleEffect(id, name, def) {
+  var C = def.count, i, i3, p, cc;
+  var pos = new Float32Array(C*3);
+  var col_arr = new Float32Array(C*3);
+  var sz = new Float32Array(C);
+  var rnd = new Float32Array(C*3);
+  var orig = new Float32Array(C*3);
+  var vel = def.burst !== false ? new Float32Array(C*3) : null;
+
+  for (i = 0; i < C; i++) {
+    i3 = i*3;
+    if (def.initPos) { p = def.initPos(i,C); pos[i3]=p[0]; pos[i3+1]=p[1]; pos[i3+2]=p[2]; }
+    if (def.colorFn) { cc = def.colorFn(i,C); col_arr[i3]=cc[0]; col_arr[i3+1]=cc[1]; col_arr[i3+2]=cc[2]; }
+    orig[i3]=pos[i3]; orig[i3+1]=pos[i3+1]; orig[i3+2]=pos[i3+2];
+    sz[i]=0.4+Math.random()*0.8;
+    rnd[i3]=Math.random(); rnd[i3+1]=Math.random(); rnd[i3+2]=Math.random();
+  }
+
+  var geo = new THREE.BufferGeometry();
+  geo.setAttribute('position', new THREE.BufferAttribute(pos,3));
+  geo.setAttribute('color', new THREE.BufferAttribute(col_arr,3));
+  geo.setAttribute('size', new THREE.BufferAttribute(sz,1));
+  geo.userData = {originalPos:orig, randoms:rnd, velocities:vel};
+
+  var mat = makeMat(true, def.pSize, def.opacity);
+  var mesh = new THREE.Points(geo, mat);
+  var group = new THREE.Group();
+  group.add(mesh);
+  if (def.group) def.group(group, mesh, geo);
+
+  var bState = {active:0,returning:0,timer:0,progress:0};
+
+  var obj = {};
+  obj.id = id;
+  obj.name = name;
+  obj.group = group;
+  obj.mesh = mesh;
+  obj.geo = geo;
+  obj.mat = mat;
+  obj.count = C;
+  obj.objects = [group];
+  obj.init = function() { scene.add(group); if (def.onInit) def.onInit(obj); };
+  obj.destroy = function() { scene.remove(group); geo.dispose(); mat.dispose(); if (def.onDestroy) def.onDestroy(); };
+  obj.animate = function(dt, el) {
+    if (def.animate) def.animate(geo, pos, orig, rnd, dt, el, bState, C, col_arr);
+    if (bState.active) updateBurstCommon(geo, pos, orig, rnd, vel, C, dt, bState);
+    geo.attributes.position.needsUpdate = 1;
+    if (def.postAnimate) def.postAnimate(dt, el);
+  };
+  obj.burst = function() {
+    if (!vel || bState.active) return;
+    bState.active = 1; bState.returning = 0; bState.timer = 1.2;
+    for (i = 0; i < C; i++) {
+      i3 = i*3;
+      var dx = pos[i3] + (rnd[i3]-0.5)*0.3;
+      var dy = pos[i3+1] + (rnd[i3+1]-0.5)*0.3;
+      var dz = pos[i3+2] + (rnd[i3+2]-0.5)*0.3;
+      var len = Math.sqrt(dx*dx+dy*dy+dz*dz) || 1;
+      var sp = 1.5 + rnd[i3+2]*1.2;
+      vel[i3]=(dx/len)*sp; vel[i3+1]=(dy/len)*sp; vel[i3+2]=(dz/len)*sp;
+    }
+  };
+  obj.recolor = function() {
+    if (def.recolorFn) {
+      var pal = def.recolorFn();
+      for (i = 0; i < C; i++) {
+        i3 = i*3;
+        var c2 = pal(i, C);
+        col_arr[i3]=c2[0]; col_arr[i3+1]=c2[1]; col_arr[i3+2]=c2[2];
+      }
+      geo.attributes.color.needsUpdate = 1;
+    }
+  };
+  return obj;
+}
+
+function updateBurstCommon(geo, pos, orig, rnd, vel, C, dt, s) {
+  if (!s.active) return;
+  if (!s.returning) {
+    for (var i = 0; i < C; i++) {
+      var i3=i*3;
+      pos[i3]+=vel[i3]*dt; pos[i3+1]+=vel[i3+1]*dt; pos[i3+2]+=vel[i3+2]*dt;
+      vel[i3]*=0.97; vel[i3+1]*=0.97; vel[i3+2]*=0.97;
+    }
+    s.timer -= dt;
+    if (s.timer <= 0) { s.returning = 1; s.progress = 0; }
+  } else {
+    s.progress += dt / 0.8;
+    if (s.progress >= 1) {
+      s.active = 0; s.returning = 0;
+      for (var i = 0; i < C; i++) { var i3=i*3; pos[i3]=orig[i3]; pos[i3+1]=orig[i3+1]; pos[i3+2]=orig[i3+2]; }
+      geo.attributes.position.needsUpdate = 1; return;
+    }
+    var ease = 1 - Math.pow(1 - Math.min(s.progress,1), 3);
+    for (var i = 0; i < C; i++) {
+      var i3=i*3;
+      pos[i3]+=(orig[i3]-pos[i3])*ease*0.06;
+      pos[i3+1]+=(orig[i3+1]-pos[i3+1])*ease*0.06;
+      pos[i3+2]+=(orig[i3+2]-pos[i3+2])*ease*0.06;
+    }
+  }
+  geo.attributes.position.needsUpdate = 1;
+}
+
+function makeHeartEffect() {
+  var C = 180000, SC = 7200, scl = 0.08;
+  var pos = new Float32Array(C*3), col = new Float32Array(C*3), sza = new Float32Array(C);
+  var rnd = new Float32Array(C*3), orig = new Float32Array(C*3);
+  var origCol = new Float32Array(C*3);
+  var cL = new THREE.Color(themeColors.out[0]);
+  var cR = cL.clone();
+  cR.offsetHSL(0.13, 0.1, 0.15);
+  for (var i = 0; i < C; i++) {
+    var i3 = i*3, t = Math.random() * Math.PI * 2;
+    var sx = 16 * Math.pow(Math.sin(t), 3), sy = 13*Math.cos(t) - 5*Math.cos(2*t) - 2*Math.cos(3*t) - Math.cos(4*t);
+    var d = (Math.random() + Math.random() - 1) * 1.6, vf = Math.sqrt(Math.max(0.001, 1 - d*d*0.18));
+    var px = sx * scl * vf + d * 0.06 * (scl/0.055), py = sy * scl * vf, pz = d * 0.30 * vf * (scl/0.055);
+    pos[i3] = px; pos[i3+1] = py; pos[i3+2] = pz; orig[i3] = px; orig[i3+1] = py; orig[i3+2] = pz;
+    var mix = (px / (16 * scl * 1.2) + 0.5); mix = Math.max(0, Math.min(1, mix));
+    var cs;
+    if (mix < 0.4) { cs = cL.clone(); }
+    else if (mix > 0.6) { cs = cR.clone(); }
+    else { cs = cL.clone().lerp(cR, (mix - 0.4) * 5); }
+    cs.multiplyScalar(0.9 + Math.random() * 0.4);
+    col[i3] = cs.r; col[i3+1] = cs.g; col[i3+2] = cs.b;
+    origCol[i3] = col[i3]; origCol[i3+1] = col[i3+1]; origCol[i3+2] = col[i3+2];
+    sza[i] = 0.5 + Math.random() * 0.7; rnd[i3] = Math.random(); rnd[i3+1] = Math.random(); rnd[i3+2] = Math.random();
+  }
+  var geo = new THREE.BufferGeometry();
+  geo.setAttribute('position', new THREE.BufferAttribute(pos, 3));
+  geo.setAttribute('color', new THREE.BufferAttribute(col, 3));
+  geo.setAttribute('size', new THREE.BufferAttribute(sza, 1));
+  geo.userData = {originalPos: orig, randoms: rnd};
+
+  var sp = new Float32Array(SC*3), ssz = new Float32Array(SC);
+  for (var i = 0; i < SC; i++) { var i3=i*3, th=Math.random()*Math.PI*2, ph=Math.acos(2*Math.random()-1), rr=1.2+Math.random()*0.8;
+    sp[i3]=rr*Math.sin(ph)*Math.cos(th); sp[i3+1]=rr*Math.cos(ph)*0.6; sp[i3+2]=rr*Math.sin(ph)*Math.sin(th); ssz[i]=0.3+Math.random()*0.5; }
+  var sg = new THREE.BufferGeometry(); sg.setAttribute('position', new THREE.BufferAttribute(sp, 3)); sg.setAttribute('size', new THREE.BufferAttribute(ssz, 1));
+  var sc1 = new THREE.Color(themeColors.out[0]), scolor = sc1.clone().lerp(new THREE.Color('#ffffff'), 0.3);
+  var sm = new THREE.Points(sg, new THREE.PointsMaterial({size:0.15,map:glowTex,blending:THREE.AdditiveBlending,depthWrite:0,transparent:1,opacity:0.6,color:scolor,sizeAttenuation:1}));
+
+  var mat = new THREE.PointsMaterial({size:0.55,map:glowTex,blending:THREE.AdditiveBlending,depthWrite:0,transparent:1,opacity:1,vertexColors:1,sizeAttenuation:1});
+  var mesh = new THREE.Points(geo, mat);
+  var grp = new THREE.Group(); grp.add(mesh);
+
+  var obj = {};
+  obj.id = 'heart'; obj.name = '爱心流水'; obj.objects = [grp, sm];
+  obj.init = function() {
+    scene.add(grp);
+    if (!sm.parent) scene.add(sm);
+  };
+  obj.destroy = function() {
+    scene.remove(grp);
+    if (sm.parent) scene.remove(sm);
+    geo.dispose(); sg.dispose(); mat.dispose(); sm.material.dispose();
+  };
+  obj.animate = function(dt, el) {
+    grp.rotation.y += dt * 0.05;
+    grp.rotation.x = Math.sin(el * 0.09) * 0.05;
+    grp.rotation.z = Math.sin(el * 0.06) * 0.03;
+    var p = geo.attributes.position.array, o = geo.userData.originalPos, r3 = geo.userData.randoms;
+    mat.size = 0.55;
+    mat.opacity = 1;
+    sm.material.opacity = 0.6;
+    for (var i = 0; i < C; i++) {
+      var i3 = i*3;
+      var ph1 = o[i3]*1.8+o[i3+2]*1.2+el*0.5+r3[i3]*0.3, ph2 = o[i3]*0.7-o[i3+2]*1.5+el*0.35+r3[i3+1]*0.3, f = Math.sin(ph1)*0.012+Math.cos(ph2)*0.008;
+      p[i3] = o[i3]+f*1.2; p[i3+1] = o[i3+1]+f*0.4+Math.sin(o[i3]*1.2+el*0.6)*0.006; p[i3+2] = o[i3+2]+f*0.8;
+    }
+    geo.attributes.position.needsUpdate = 1;
+    sm.rotation.y += dt * 0.25;
+    sm.rotation.x += dt * 0.08;
+  };
+  obj.burst = function() { };
+  obj.recolor = function() {
+    var ca = geo.attributes.color.array, o = geo.userData.originalPos;
+    var ncL = new THREE.Color(themeColors.out[0]);
+    var ncR = ncL.clone();
+    ncR.offsetHSL(0.13, 0.1, 0.15);
+    for (var i = 0; i < C; i++) {
+      var i3 = i*3, mix = (o[i3] / (16 * scl * 1.2) + 0.5);
+      mix = Math.max(0, Math.min(1, mix));
+      var cs;
+      if (mix < 0.4) { cs = ncL.clone(); }
+      else if (mix > 0.6) { cs = ncR.clone(); }
+      else { cs = ncL.clone().lerp(ncR, (mix - 0.4) * 5); }
+      cs.multiplyScalar(0.6 + Math.random() * 0.5);
+      ca[i3] = cs.r; ca[i3+1] = cs.g; ca[i3+2] = cs.b;
+      origCol[i3] = ca[i3]; origCol[i3+1] = ca[i3+1]; origCol[i3+2] = ca[i3+2];
+    }
+    geo.attributes.color.needsUpdate = 1;
+    sm.material.color = new THREE.Color(themeColors.out[0]).lerp(new THREE.Color('#ffffff'), 0.3);
+  };
+  return obj;
+}
+
+
+function makeGalaxyEffect() {
+  var C = 48000, i, i3;
+  var pos = new Float32Array(C*3);
+  var col_arr = new Float32Array(C*3);
+  var sz = new Float32Array(C);
+  var rnd = new Float32Array(C*3);
+  var orig = new Float32Array(C*3);
+
+  for (i = 0; i < C; i++) {
+    i3 = i*3;
+    var arm = Math.floor(Math.random() * 4);
+    var armAngle = arm * Math.PI / 2;
+    var dist = Math.pow(Math.random(), 0.6) * 2.5;
+    var angle = armAngle + dist * 2.5 + (Math.random() - 0.5) * 0.4;
+    var spread = 0.03 + dist * 0.04;
+    pos[i3] = Math.cos(angle) * dist + (Math.random() - 0.5) * spread;
+    pos[i3+1] = (Math.random() - 0.5) * spread * 0.5;
+    pos[i3+2] = Math.sin(angle) * dist + (Math.random() - 0.5) * spread;
+    orig[i3] = pos[i3]; orig[i3+1] = pos[i3+1]; orig[i3+2] = pos[i3+2];
+    var hue = 0.6 + (dist / 3.0) * 0.3 + (Math.random() - 0.5) * 0.1;
+    var sat = 0.5 + Math.random() * 0.5;
+    var lit = 0.5 + Math.random() * 0.5;
+    var c = new THREE.Color().setHSL(hue % 1, sat, lit);
+    col_arr[i3] = c.r; col_arr[i3+1] = c.g; col_arr[i3+2] = c.b;
+    sz[i] = 0.3 + Math.random() * 0.6;
+    rnd[i3] = Math.random(); rnd[i3+1] = Math.random(); rnd[i3+2] = Math.random();
+  }
+
+  var geo = new THREE.BufferGeometry();
+  geo.setAttribute('position', new THREE.BufferAttribute(pos, 3));
+  geo.setAttribute('color', new THREE.BufferAttribute(col_arr, 3));
+  geo.setAttribute('size', new THREE.BufferAttribute(sz, 1));
+  geo.userData = {originalPos: orig, randoms: rnd};
+  var mat = makeMat(true, 0.45, 0.95);
+  var mesh = new THREE.Points(geo, mat);
+  var grp = new THREE.Group();
+  grp.add(mesh);
+
+  var obj = {};
+  obj.id = 'galaxy';
+  obj.name = '银河粒子';
+  obj.objects = [grp];
+  obj.init = function() { scene.add(grp); };
+  obj.destroy = function() { scene.remove(grp); geo.dispose(); mat.dispose(); };
+  obj.animate = function(dt, el) {
+    grp.rotation.y += dt * 0.08;
+    grp.rotation.x = Math.sin(el * 0.02) * 0.1;
+    var p = geo.attributes.position.array;
+    for (i = 0; i < C; i++) {
+      i3 = i*3;
+      var wave = Math.sin(el * 0.5 + rnd[i3] * 6.28) * 0.008;
+      p[i3] = orig[i3] + wave;
+      p[i3+1] = orig[i3+1] + Math.sin(el * 0.3 + rnd[i3+1] * 6.28) * 0.005;
+      p[i3+2] = orig[i3+2] + wave * 0.5;
+    }
+    geo.attributes.position.needsUpdate = 1;
+  };
+  obj.burst = function() { };
+  obj.recolor = function() { };
+  return obj;
+}
+
+
+function makeRainbowEffect() {
+  var C = 30000, i, i3;
+  var pos = new Float32Array(C*3);
+  var col_arr = new Float32Array(C*3);
+  var sz = new Float32Array(C);
+  var rnd = new Float32Array(C*3);
+  var orig = new Float32Array(C*3);
+
+  for (i = 0; i < C; i++) {
+    i3 = i*3;
+    var angle = Math.random() * Math.PI * 2;
+    var radius = 0.8 + Math.random() * 1.5;
+    var bandHeight = (Math.random() - 0.5) * 0.15;
+    pos[i3] = Math.cos(angle) * radius;
+    pos[i3+1] = bandHeight;
+    pos[i3+2] = Math.sin(angle) * radius;
+    orig[i3] = pos[i3]; orig[i3+1] = pos[i3+1]; orig[i3+2] = pos[i3+2];
+    var hue = (Math.atan2(pos[i3+2], pos[i3]) / (Math.PI * 2) + 0.5) % 1;
+    var sat = 0.8 + Math.random() * 0.2;
+    var lit = 0.5 + Math.random() * 0.5;
+    var c = new THREE.Color().setHSL(hue, sat, lit);
+    col_arr[i3] = c.r; col_arr[i3+1] = c.g; col_arr[i3+2] = c.b;
+    sz[i] = 0.4 + Math.random() * 0.6;
+    rnd[i3] = Math.random(); rnd[i3+1] = Math.random(); rnd[i3+2] = Math.random();
+  }
+
+  var geo = new THREE.BufferGeometry();
+  geo.setAttribute('position', new THREE.BufferAttribute(pos, 3));
+  geo.setAttribute('color', new THREE.BufferAttribute(col_arr, 3));
+  geo.setAttribute('size', new THREE.BufferAttribute(sz, 1));
+  geo.userData = {originalPos: orig, randoms: rnd};
+
+  var mat = makeMat(true, 0.5, 0.95);
+  var mesh = new THREE.Points(geo, mat);
+  var grp = new THREE.Group();
+  grp.add(mesh);
+
+  var obj = {};
+  obj.id = 'rainbow';
+  obj.name = '彩虹粒子';
+  obj.objects = [grp];
+  obj.init = function() { scene.add(grp); };
+  obj.destroy = function() { scene.remove(grp); geo.dispose(); mat.dispose(); };
+  obj.animate = function(dt, el) {
+    grp.rotation.y += dt * 0.15;
+    grp.rotation.x = Math.sin(el * 0.05) * 0.06;
+    var p = geo.attributes.position.array;
+    for (i = 0; i < C; i++) {
+      i3 = i*3;
+      p[i3+1] = orig[i3+1] + Math.sin(el * 0.5 + rnd[i3] * 6.28) * 0.04;
+      var ripple = Math.sin(el * 0.3 + rnd[i3+1] * 6.28) * 0.015;
+      p[i3] = orig[i3] + ripple;
+      p[i3+2] = orig[i3+2] + ripple * 0.5;
+    }
+    geo.attributes.position.needsUpdate = 1;
+  };
+  obj.burst = function() { };
+  obj.recolor = function() { };
+  return obj;
+}
+
+var effects = {
+  heart: makeHeartEffect(),
+  galaxy: makeGalaxyEffect(),
+  rainbow: makeRainbowEffect()
+};
+var effectIds = Object.keys(effects);
+
+function switchEffect(idx) {
+  if (currentEffect) currentEffect.destroy();
+  currentIdx = (idx + effectIds.length) % effectIds.length;
+  currentEffect = effects[effectIds[currentIdx]];
+  currentEffect.init();
+  effectLabel.textContent = currentEffect.name;
+}
+
+var clock = new THREE.Clock();
+var elapsed = 0;
+
+function animateLoop() {
+  requestAnimationFrame(animateLoop);
+  var dt = Math.min(clock.getDelta(), 0.05);
+  elapsed += dt;
+  if (currentEffect) currentEffect.animate(dt, elapsed);
+  starMesh.rotation.y += dt * 0.005;
+  renderer.render(scene, camera);
+}
+
+switchEffect(0);
+animateLoop();
+
+document.addEventListener('keydown', function(e) {
+  if (e.key === 'ArrowRight') switchEffect(currentIdx + 1);
+  if (e.key === 'ArrowLeft') switchEffect(currentIdx - 1);
+});
+
+renderer.domElement.addEventListener('click', function() {
+  if (currentEffect && currentEffect.burst) currentEffect.burst();
+});
+renderer.domElement.addEventListener('touchstart', function(e) {
+  if (e.touches.length === 1 && currentEffect && currentEffect.burst) currentEffect.burst();
+}, {passive:1});
+
+var panel = document.getElementById('panel');
+var gearBtn = document.getElementById('gearBtn');
+var closePanelBtn = document.getElementById('closePanel');
+var textInputs = [1,2,3,4,5].map(function(i){return document.getElementById('input'+i);});
+var floatTexts = [1,2,3,4,5].map(function(i){return document.getElementById('ft'+i);});
+var hintText = document.getElementById('hintText');
+var effectHud = document.getElementById('effectHud');
+
+gearBtn.addEventListener('click', function(){panel.classList.add('show');});
+closePanelBtn.addEventListener('click', function(){panel.classList.remove('show');});
+panel.querySelector('.bg').addEventListener('click', function(){panel.classList.remove('show');});
+textInputs.forEach(function(inp,i){inp.addEventListener('input',function(){floatTexts[i].textContent=inp.value||'\u00B7';});});
+
+document.querySelectorAll('#themePicker .dot').forEach(function(el){
+  el.addEventListener('click',function(){
+    document.querySelector('#themePicker .dot.active').classList.remove('active');
+    this.classList.add('active');
+    currentTheme=this.dataset.t;
+    themeColors=THEMES[currentTheme];
+    scene.background=new THREE.Color(themeColors.bg);
+    if(currentEffect&&currentEffect.recolor)currentEffect.recolor();
+    var cc=new THREE.Color(themeColors.out[0]),cl2=cc.clone().lerp(new THREE.Color('#ffffff'),0.3);
+    var rgba=function(cl,a){return'rgba('+Math.floor(cl.r*255)+','+Math.floor(cl.g*255)+','+Math.floor(cl.b*255)+','+a+')';};
+    floatTexts.forEach(function(el2,i){var a=[0.85,0.7,0.55,0.6,0.4][i];el2.style.color=rgba(cl2,a);el2.style.textShadow='0 0 30px '+rgba(cc,0.4)+',0 0 80px '+rgba(cc,0.15);});
+    hintText.style.color=rgba(cc,0.2);
+    effectHud.style.color=rgba(cl2,0.25);
+  });
+});
+
+window.addEventListener('resize',function(){
+  camera.aspect=innerWidth/innerHeight;
+  camera.updateProjectionMatrix();
+  renderer.setSize(innerWidth,innerHeight);
+});
+
+(function(){
+  var q=new URLSearchParams(location.search),hasAny=0;
+  var keys=['text1','text2','text3','text4','text5'];
+  keys.forEach(function(k,i){if(q.has(k)){textInputs[i].value=decodeURIComponent(q.get(k));floatTexts[i].textContent=textInputs[i].value;hasAny=1;}});
+  if(!hasAny&&q.has('text')){var v=decodeURIComponent(q.get('text'));textInputs.forEach(function(inp,i){inp.value=v;floatTexts[i].textContent=v||'\u00B7';});}
+  if(q.has('t')&&THEMES[q.get('t')]){currentTheme=q.get('t');themeColors=THEMES[currentTheme];scene.background=new THREE.Color(themeColors.bg);}
+})();
+
+document.body.style.background=themeColors.bg;
+console.log('OK');
+</script>
+</body>
+</html>
