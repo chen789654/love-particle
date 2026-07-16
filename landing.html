@@ -117,9 +117,6 @@ footer{text-align:center;padding:40px 24px;color:#3a3a4a;font-size:0.8rem;border
   .builder-row input{width:100%}
 }
 
-/* ── Toast ── */
-.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:#1a1a28;border:1px solid #2a2a3a;padding:10px 24px;border-radius:10px;font-size:0.85rem;color:#e8e8f0;z-index:999;opacity:0;transition:opacity .3s;pointer-events:none}
-.toast.show{opacity:1}
 </style>
 </head>
 <body>
@@ -160,12 +157,12 @@ footer{text-align:center;padding:40px 24px;color:#3a3a4a;font-size:0.8rem;border
     <div class="feature-card">
       <div class="icon">✏️</div>
       <h3>专属名字显示</h3>
-      <p>「小美，我喜欢你 ♥」—— 打开页面直接看到 TA 的名字。</p>
+      <p>「小美，我喜欢你 ♥」—— 下单告诉我名字，定制专属页面。</p>
     </div>
     <div class="feature-card">
       <div class="icon">🎨</div>
       <h3>5 种主题色</h3>
-      <p>红色经典、粉色甜美、冰蓝清冷、紫色梦幻、暖橘温馨。</p>
+      <p>下单时告诉我喜欢的颜色，我帮你配上。</p>
     </div>
     <div class="feature-card">
       <div class="icon">📝</div>
@@ -223,64 +220,22 @@ footer{text-align:center;padding:40px 24px;color:#3a3a4a;font-size:0.8rem;border
 </div>
 </section>
 
-<!-- ═══ URL Builder ═══ -->
-<section class="section" style="background:#08080f" id="builder">
-<div class="section-inner">
-  <div class="section-label">🔧 在线定制</div>
-  <h2>自己配，看看效果</h2>
-  <p class="section-desc">填名字选主题，链接自动生成，复制就能用。</p>
-
-  <div class="builder">
-    <div class="builder-row">
-      <label>收件人</label>
-      <input type="text" id="bTo" value="小美" placeholder="TA的名字" maxlength="12">
-    </div>
-    <div class="builder-row">
-      <label>寄件人</label>
-      <input type="text" id="bFrom" value="小明" placeholder="你的名字" maxlength="12">
-    </div>
-    <div class="builder-row">
-      <label>主题色</label>
-      <select id="bTheme">
-        <option value="r">❤️ 红色</option>
-        <option value="p">💗 粉色</option>
-        <option value="b">💙 蓝色</option>
-        <option value="v">💜 紫色</option>
-        <option value="w">🧡 暖橘</option>
-      </select>
-    </div>
-    <div class="builder-row">
-      <label>文字1~5</label>
-      <input type="text" id="bT1" value="勇气" maxlength="6" style="width:80px">
-      <input type="text" id="bT2" value="陪伴" maxlength="6" style="width:80px">
-      <input type="text" id="bT3" value="珍惜" maxlength="6" style="width:80px">
-      <input type="text" id="bT4" value="守护" maxlength="6" style="width:80px">
-      <input type="text" id="bT5" value="坦荡" maxlength="6" style="width:80px">
-    </div>
-    <div class="builder-url">
-      <code id="bUrl">https://love-particle.netlify.app/?to=小美&from=小明&text1=勇气&text2=陪伴&text3=珍惜&text4=守护&text5=坦荡</code>
-      <button class="copy-btn" id="bCopy">📋 复制</button>
-    </div>
-  </div>
-</div>
-</section>
-
 <!-- ═══ How It Works ═══ -->
 <section class="section">
 <div class="section-inner">
   <div class="section-label">📋 使用说明</div>
   <h2>三步搞定</h2>
-  <p class="section-desc">下单 → 我给链接 → 你发给TA，就这么简单。</p>
+  <p class="section-desc">去闲鱼下单 → 我做好链接发给你 → 你发给TA，就这么简单。</p>
   <div class="steps">
     <div class="step">
       <div class="step-num">1</div>
-      <h3>告诉我名字</h3>
-      <p>收件人、寄件人、想写的文字、喜欢的颜色</p>
+      <h3>去闲鱼下单</h3>
+      <p>拍下后告诉我：收件人、寄件人、想写的文字、喜欢的颜色</p>
     </div>
     <div class="step">
       <div class="step-num">2</div>
-      <h3>我生成链接</h3>
-      <p>做好专属链接，发给你</p>
+      <h3>我做好链接</h3>
+      <p>5分钟内做好专属链接，发给你</p>
     </div>
     <div class="step">
       <div class="step-num">3</div>
@@ -343,8 +298,8 @@ footer{text-align:center;padding:40px 24px;color:#3a3a4a;font-size:0.8rem;border
       <div class="faq-a">永久有效，什么时候打开都在。</div>
     </div>
     <div class="faq-item">
-      <div class="faq-q">我想改名字还能改吗？</div>
-      <div class="faq-a">随时找我，免费修改。</div>
+      <div class="faq-q">收到链接后想改名还能改吗？</div>
+      <div class="faq-a">随时找我，免费改。</div>
     </div>
     <div class="faq-item">
       <div class="faq-q">下单后多久能做好？</div>
@@ -352,7 +307,7 @@ footer{text-align:center;padding:40px 24px;color:#3a3a4a;font-size:0.8rem;border
     </div>
     <div class="faq-item">
       <div class="faq-q">怎么下单？</div>
-      <div class="faq-a">闲鱼直接拍下，备注告诉我收件人/寄件人名字和想写的文字就行。</div>
+      <div class="faq-a">闲鱼直接拍下，下单后告诉我收件人、寄件人、想写的文字和喜欢的颜色就行。</div>
     </div>
   </div>
 </div>
@@ -361,15 +316,13 @@ footer{text-align:center;padding:40px 24px;color:#3a3a4a;font-size:0.8rem;border
 <!-- ═══ CTA ═══ -->
 <section class="cta-section" id="order">
   <h2>💝 想要一个专属链接？</h2>
-  <p>告诉我你想写的话，我把浪漫装进一个链接里。</p>
-  <a class="btn btn-primary" id="demoBtn3" href="/?to=小美&from=小明&text1=勇气&text2=陪伴&text3=珍惜&text4=守护&text5=坦荡" target="_blank" style="font-size:1.1rem;padding:16px 40px">🔥 先看效果再下单</a>
+  <p>闲鱼拍下，告诉我名字和想写的文字，我做好链接发给你。</p>
+  <a class="btn btn-primary" id="demoBtn3" href="/?to=小美&from=小明&text1=勇气&text2=陪伴&text3=珍惜&text4=守护&text5=坦荡" target="_blank" style="font-size:1.1rem;padding:16px 40px">🔥 先看效果</a>
 </section>
 
 <footer>
   <a href="/" id="footerLink" style="color:#3a3a4a;text-decoration:none">love-particle.netlify.app</a> &nbsp;·&nbsp; 3D 心形粒子表白页
 </footer>
-
-<div class="toast" id="toast"></div>
 
 <script>
 // ── Hero floating particles ──
@@ -394,49 +347,14 @@ function getBase(){
   return location.origin+p;
 }
 const BASE=getBase();
-const $=id=>document.getElementById(id);
-const toEl=$('bTo'),fromEl=$('bFrom'),themeEl=$('bTheme');
-const t1=$('bT1'),t2=$('bT2'),t3=$('bT3'),t4=$('bT4'),t5=$('bT5');
-const urlEl=$('bUrl'),copyEl=$('bCopy'),toast=$('toast');
 
 // ── 修正演示链接的路径 ──
-[
-  $('demoBtn1'),$('demoBtn2'),$('demoBtn3')
-].forEach(el=>{
+['demoBtn1','demoBtn2','demoBtn3'].forEach(id=>{
+  const el=document.getElementById(id);
   if(el)el.href=BASE+el.getAttribute('href').slice(1);
 });
-// 修正 footer 链接
-const fl=$('footerLink');
+const fl=document.getElementById('footerLink');
 if(fl)fl.href=BASE;
-
-function buildUrl(){
-  const p=new URLSearchParams();
-  const v=toEl.value.trim();if(v)p.set('to',v);
-  const f=fromEl.value.trim();if(f)p.set('from',f);
-  if(themeEl.value!=='r')p.set('t',themeEl.value);
-  [t1,t2,t3,t4,t5].forEach((el,i)=>{
-    const val=el.value.trim();if(val)p.set('text'+(i+1),val);
-  });
-  const q=p.toString();urlEl.textContent=BASE+(q?'?'+q:'');
-}
-function update(){buildUrl()}
-[toEl,fromEl,t1,t2,t3,t4,t5].forEach(el=>el.addEventListener('input',update));
-themeEl.addEventListener('change',update);
-
-copyEl.addEventListener('click',function(){
-  navigator.clipboard.writeText(urlEl.textContent).then(()=>{
-    copyEl.textContent='✅ 已复制';
-    copyEl.classList.add('copied');
-    setTimeout(()=>{copyEl.textContent='📋 复制';copyEl.classList.remove('copied');},2000);
-  }).catch(()=>{
-    toast.textContent='复制失败，请手动选择复制';
-    toast.classList.add('show');
-    setTimeout(()=>toast.classList.remove('show'),2500);
-  });
-});
-
-// init
-buildUrl();
 </script>
 </body>
 </html>

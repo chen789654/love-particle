@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>链接生成器 · 管理后台</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','Noto Sans SC',sans-serif;background:#0a0a12;color:#e8e8f0;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px}
+.card{background:#12121e;border:1px solid #1e1e2e;border-radius:16px;padding:32px;width:100%;max-width:480px}
+h1{font-size:1.1rem;font-weight:600;margin-bottom:4px;letter-spacing:1px}
+.sub{font-size:0.8rem;color:#555;margin-bottom:24px}
+.field{margin-bottom:16px}
+.field label{display:block;font-size:0.78rem;color:#888;letter-spacing:1px;margin-bottom:4px}
+.field input,.field select{width:100%;padding:10px 14px;border-radius:8px;background:#0a0a14;border:1px solid #2a2a3a;color:#e8e8f0;font-size:0.9rem;outline:none;transition:border .2s}
+.field input:focus,.field select:focus{border-color:#f06a8a}
+.field-row{display:flex;gap:8px}
+.field-row input{flex:1;min-width:0}
+.url-box{background:#0a0a14;border:1px solid #2a2a3a;border-radius:10px;padding:14px 16px;margin-top:8px;display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.url-box code{font-size:0.82rem;color:#f0c8a0;word-break:break-all;flex:1;font-family:'SF Mono','Fira Code',monospace}
+.copy-btn{background:#f06a8a22;color:#f06a8a;border:1px solid #f06a8a44;padding:7px 18px;border-radius:6px;font-size:0.82rem;cursor:pointer;transition:all .2s;white-space:nowrap}
+.copy-btn:hover{background:#f06a8a44}
+.copy-btn.copied{background:#22c55e22;color:#22c55e;border-color:#22c55e44}
+.preview-link{display:block;text-align:center;margin-top:16px;font-size:0.8rem;color:#555;text-decoration:none}
+.preview-link:hover{color:#f06a8a}
+.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:#1a1a28;border:1px solid #2a2a3a;padding:10px 24px;border-radius:10px;font-size:0.85rem;color:#e8e8f0;z-index:999;opacity:0;transition:opacity .3s;pointer-events:none}
+.toast.show{opacity:1}
+</style>
+</head>
+<body>
+
+<div class="card">
+  <h1>🔧 链接生成器</h1>
+  <div class="sub">收件人 · 寄件人 · 主题 · 文字</div>
+
+  <div class="field">
+    <label>收件人</label>
+    <input type="text" id="bTo" value="小美" maxlength="12">
+  </div>
+  <div class="field">
+    <label>寄件人</label>
+    <input type="text" id="bFrom" value="小明" maxlength="12">
+  </div>
+  <div class="field">
+    <label>主题色</label>
+    <select id="bTheme">
+      <option value="r">❤️ 红色</option>
+      <option value="p">💗 粉色</option>
+      <option value="b">💙 蓝色</option>
+      <option value="v">💜 紫色</option>
+      <option value="w">🧡 暖橘</option>
+    </select>
+  </div>
+  <div class="field">
+    <label>漂浮文字（1~5，留空不显示）</label>
+    <div class="field-row">
+      <input type="text" id="bT1" value="勇气" maxlength="6" placeholder="文1">
+      <input type="text" id="bT2" value="陪伴" maxlength="6" placeholder="文2">
+      <input type="text" id="bT3" value="珍惜" maxlength="6" placeholder="文3">
+      <input type="text" id="bT4" value="守护" maxlength="6" placeholder="文4">
+      <input type="text" id="bT5" value="坦荡" maxlength="6" placeholder="文5">
+    </div>
+  </div>
+
+  <div class="url-box">
+    <code id="bUrl">https://love-particle.netlify.app/?to=小美&from=小明</code>
+    <button class="copy-btn" id="bCopy">📋 复制</button>
+  </div>
+
+  <a class="preview-link" id="previewLink" href="#" target="_blank">在新窗口打开预览 ↗</a>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ── 获取基准路径 ──
+function getBase(){
+  let p=location.pathname;
+  p=p.replace(/admin\.html$/,'');
+  if(!p.endsWith('/'))p+='/';
+  return location.origin+p;
+}
+const BASE=getBase();
+const $=id=>document.getElementById(id);
+const toEl=$('bTo'),fromEl=$('bFrom'),themeEl=$('bTheme');
+const t1=$('bT1'),t2=$('bT2'),t3=$('bT3'),t4=$('bT4'),t5=$('bT5');
+const urlEl=$('bUrl'),copyEl=$('bCopy'),toast=$('toast'),preview=$('previewLink');
+
+// ── 主题色映射 ──
+const themeMap={r:'red',p:'pink',b:'ocean',v:'purple',w:'sunset'};
+
+function buildUrl(){
+  const p=new URLSearchParams();
+  const v=toEl.value.trim();if(v)p.set('to',v);
+  const f=fromEl.value.trim();if(f)p.set('from',f);
+  const t=themeEl.value;
+  if(t!=='r')p.set('t',t);
+  [t1,t2,t3,t4,t5].forEach((el,i)=>{
+    const val=el.value.trim();if(val)p.set('text'+(i+1),val);
+  });
+  const q=p.toString();
+  const url=BASE+(q?'?'+q:'');
+  urlEl.textContent=url;
+  preview.href=url;
+}
+function update(){buildUrl()}
+
+[toEl,fromEl,t1,t2,t3,t4,t5].forEach(el=>el.addEventListener('input',update));
+themeEl.addEventListener('change',update);
+
+copyEl.addEventListener('click',function(){
+  navigator.clipboard.writeText(urlEl.textContent).then(()=>{
+    copyEl.textContent='✅ 已复制';
+    copyEl.classList.add('copied');
+    setTimeout(()=>{copyEl.textContent='📋 复制';copyEl.classList.remove('copied');},2000);
+  }).catch(()=>{
+    toast.textContent='复制失败，请手动选择复制';
+    toast.classList.add('show');
+    setTimeout(()=>toast.classList.remove('show'),2500);
+  });
+});
+
+buildUrl();
+</script>
+</body>
+</html>
