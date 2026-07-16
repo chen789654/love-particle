@@ -3,126 +3,424 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>3D 心形粒子 · 定制表白页</title>
+<title>3D 心形粒子 · 专属表白页</title>
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
-body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','Noto Sans SC',sans-serif;background:#0d0d14;color:#e8e8f0;line-height:1.7}
-a{color:#f06a8a;text-decoration:none}
-a:hover{text-decoration:underline}
-.container{max-width:720px;margin:0 auto;padding:40px 24px 80px}
-h1{font-size:2rem;font-weight:700;background:linear-gradient(135deg,#f06a8a,#ff8c5a);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;margin-bottom:8px}
-.subtitle{color:#8888a0;font-size:1rem;margin-bottom:40px}
-.section{margin-bottom:36px}
-.section h2{font-size:1.15rem;font-weight:600;color:#f0f0ff;margin-bottom:12px;padding-bottom:6px;border-bottom:1px solid #2a2a3a}
-.tag{display:inline-block;background:#f06a8a22;color:#f06a8a;border:1px solid #f06a8a44;border-radius:6px;padding:2px 10px;font-size:0.8rem;margin:2px}
-.example-box{background:#1a1a28;border:1px solid #2a2a3a;border-radius:10px;padding:16px 20px;margin:12px 0;font-size:0.9rem;word-break:break-all;overflow-wrap:break-word}
-.example-box .label{color:#8888a0;font-size:0.78rem;display:block;margin-bottom:4px}
-.example-box code{color:#f0c8a0;font-family:'SF Mono','Fira Code',monospace;font-size:0.85rem}
-.example-box .desc{margin-top:6px;color:#a0a0b8;font-size:0.85rem}
-.table{width:100%;border-collapse:collapse;margin:10px 0;font-size:0.88rem}
-.table th,.table td{text-align:left;padding:8px 12px;border-bottom:1px solid #2a2a3a}
-.table th{color:#8888a0;font-weight:500;font-size:0.82rem;text-transform:uppercase}
-.table td{color:#d0d0e0}
-.table td:first-child{font-family:'SF Mono','Fira Code',monospace;color:#f0c8a0;white-space:nowrap}
-.preview-btn{display:inline-block;background:linear-gradient(135deg,#f06a8a,#ff8c5a);color:#fff;font-weight:600;padding:10px 24px;border-radius:8px;margin-top:10px;transition:opacity .2s}
-.preview-btn:hover{opacity:0.85;text-decoration:none}
-.preview-card{background:#1a1a28;border:1px solid #2a2a3a;border-radius:12px;overflow:hidden;margin:16px 0}
-.preview-card .head{background:#2a2a3a;padding:10px 16px;font-size:0.8rem;color:#8888a0;border-bottom:1px solid #3a3a4a}
-.preview-card .body{padding:16px 20px;font-size:0.88rem}
-.preview-card .body .row{display:flex;align-items:flex-start;gap:8px;padding:4px 0}
-.preview-card .body .row .arrow{color:#f06a8a;flex-shrink:0}
-.cta{margin-top:40px;padding:30px;text-align:center;background:linear-gradient(135deg,#1a1a28,#2a1a28);border-radius:14px;border:1px solid #3a2a3a}
-.cta p{color:#a0a0b8;margin-bottom:14px}
-.cta .btn{display:inline-block;background:linear-gradient(135deg,#f06a8a,#ff8c5a);color:#fff;font-weight:600;padding:12px 32px;border-radius:8px;font-size:1rem;transition:opacity .2s}
-.cta .btn:hover{opacity:0.85;text-decoration:none}
-footer{text-align:center;color:#5a5a70;font-size:0.8rem;margin-top:60px;padding-top:20px;border-top:1px solid #1a1a28}
+html{scroll-behavior:smooth}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','Noto Sans SC',sans-serif;background:#0a0a12;color:#e8e8f0;overflow-x:hidden}
+
+/* ── Hero ── */
+.hero{position:relative;min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:40px 24px;overflow:hidden}
+.hero-bg{position:absolute;inset:0;background:radial-gradient(ellipse at 50% 30%,#2a0a1a 0%,#0a0a12 70%);z-index:0}
+.hero-bg::before{content:'';position:absolute;inset:0;background:url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23f06a8a' fill-opacity='0.03'%3E%3Ccircle cx='30' cy='30' r='1'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");z-index:0}
+.hero-particles{position:absolute;inset:0;overflow:hidden;z-index:0}
+.hero-particles span{position:absolute;width:3px;height:3px;border-radius:50%;animation:drift linear infinite}
+@keyframes drift{0%{transform:translateY(100vh) scale(0);opacity:0}10%{opacity:1}90%{opacity:1}100%{transform:translateY(-10vh) scale(1);opacity:0}}
+.hero-content{position:relative;z-index:1;max-width:680px}
+.hero-heart{font-size:4rem;margin-bottom:20px;display:inline-block;animation:pulse 2s ease-in-out infinite;filter:drop-shadow(0 0 40px #f06a8a55)}
+@keyframes pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.12)}}
+.hero h1{font-size:clamp(2rem,5vw,3.2rem);font-weight:800;background:linear-gradient(135deg,#f06a8a 0%,#ff8c5a 50%,#f06a8a 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;line-height:1.3;margin-bottom:16px}
+.hero p{font-size:1.1rem;color:#8888a0;max-width:520px;margin:0 auto 32px;line-height:1.7}
+.hero-btns{display:flex;gap:14px;flex-wrap:wrap;justify-content:center}
+.btn{display:inline-flex;align-items:center;gap:8px;padding:14px 32px;border-radius:12px;font-size:1rem;font-weight:600;text-decoration:none;transition:all .3s;border:none;cursor:pointer}
+.btn-primary{background:linear-gradient(135deg,#f06a8a,#ff8c5a);color:#fff;box-shadow:0 4px 24px #f06a8a44}
+.btn-primary:hover{transform:translateY(-2px);box-shadow:0 8px 40px #f06a8a66}
+.btn-secondary{background:#1a1a28;color:#e8e8f0;border:1px solid #2a2a3a}
+.btn-secondary:hover{background:#2a2a3a;transform:translateY(-2px)}
+.scroll-hint{position:absolute;bottom:28px;z-index:1;color:#555;font-size:0.8rem;animation:bounce 2s ease-in-out infinite;display:flex;flex-direction:column;align-items:center;gap:4px}
+@keyframes bounce{0%,100%{transform:translateY(0)}50%{transform:translateY(8px)}}
+
+/* ── Sections ── */
+.section{padding:80px 24px}
+.section-inner{max-width:960px;margin:0 auto}
+.section-label{display:inline-block;font-size:0.78rem;font-weight:600;letter-spacing:2px;text-transform:uppercase;color:#f06a8a;margin-bottom:8px}
+.section h2{font-size:clamp(1.5rem,3vw,2rem);font-weight:700;margin-bottom:12px}
+.section-desc{color:#8888a0;font-size:1rem;line-height:1.7;margin-bottom:40px;max-width:600px}
+
+/* ── Features ── */
+.features{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:16px}
+.feature-card{background:#12121e;border:1px solid #1e1e2e;border-radius:14px;padding:28px 24px;transition:all .3s}
+.feature-card:hover{border-color:#f06a8a44;transform:translateY(-4px);box-shadow:0 12px 40px #00000044}
+.feature-card .icon{font-size:1.8rem;margin-bottom:12px}
+.feature-card h3{font-size:1rem;font-weight:600;margin-bottom:8px}
+.feature-card p{font-size:0.88rem;color:#8888a0;line-height:1.6}
+
+/* ── Gallery ── */
+.gallery{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:16px}
+.gallery-item{position:relative;border-radius:14px;overflow:hidden;border:1px solid #1e1e2e;aspect-ratio:16/10;background:#0e0e1a}
+.gallery-item img{width:100%;height:100%;object-fit:cover;transition:transform .4s}
+.gallery-item:hover img{transform:scale(1.03)}
+.gallery-item .label{position:absolute;bottom:0;left:0;right:0;padding:10px 16px;background:linear-gradient(transparent,#00000099);font-size:0.82rem;color:#d0d0e0}
+.gallery-2{grid-template-columns:repeat(2,1fr)}
+@media(max-width:640px){.gallery-2{grid-template-columns:1fr}}
+
+/* ── How It Works ── */
+.steps{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:24px}
+.step{text-align:center;padding:24px}
+.step-num{width:40px;height:40px;border-radius:50%;background:linear-gradient(135deg,#f06a8a,#ff8c5a);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:1rem;margin:0 auto 16px}
+.step h3{font-size:1rem;font-weight:600;margin-bottom:8px}
+.step p{font-size:0.85rem;color:#8888a0;line-height:1.6}
+.arrow-hint{text-align:center;font-size:1.2rem;color:#3a3a4a;padding:4px 0}
+@media(min-width:800px){.steps{grid-template-columns:1fr auto 1fr auto 1fr}.arrow-hint{align-self:center}}
+
+/* ── URL Builder ── */
+.builder{background:#12121e;border:1px solid #1e1e2e;border-radius:16px;padding:32px;margin-bottom:20px}
+.builder-row{margin-bottom:16px;display:flex;flex-wrap:wrap;align-items:center;gap:10px}
+.builder-row label{font-size:0.88rem;font-weight:500;color:#a0a0b8;min-width:60px}
+.builder-row input{background:#0a0a14;border:1px solid #2a2a3a;border-radius:8px;padding:8px 14px;color:#e8e8f0;font-size:0.9rem;width:120px;outline:none;transition:border .2s}
+.builder-row input:focus{border-color:#f06a8a}
+.builder-row select{background:#0a0a14;border:1px solid #2a2a3a;border-radius:8px;padding:8px 14px;color:#e8e8f0;font-size:0.9rem;outline:none;cursor:pointer}
+.builder-row select:focus{border-color:#f06a8a}
+.builder-url{background:#0a0a14;border:1px solid #2a2a3a;border-radius:10px;padding:14px 18px;display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-top:8px}
+.builder-url code{font-size:0.85rem;color:#f0c8a0;word-break:break-all;flex:1;font-family:'SF Mono','Fira Code',monospace}
+.copy-btn{background:#f06a8a22;color:#f06a8a;border:1px solid #f06a8a44;padding:6px 16px;border-radius:6px;font-size:0.82rem;cursor:pointer;transition:all .2s;white-space:nowrap}
+.copy-btn:hover{background:#f06a8a44}
+.copy-btn.copied{background:#22c55e22;color:#22c55e;border-color:#22c55e44}
+
+/* ── Pricing ── */
+.pricing{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:16px;max-width:600px;margin:0 auto}
+.pricing-card{background:#12121e;border:1px solid #1e1e2e;border-radius:16px;padding:32px 24px;text-align:center;transition:all .3s;position:relative}
+.pricing-card.featured{border-color:#f06a8a44;background:linear-gradient(180deg,#1a1220,#12121e)}
+.pricing-card.featured .badge{position:absolute;top:-12px;left:50%;transform:translateX(-50%);background:linear-gradient(135deg,#f06a8a,#ff8c5a);font-size:0.72rem;font-weight:700;padding:4px 16px;border-radius:20px;color:#fff}
+.pricing-card h3{font-size:1.1rem;font-weight:600;margin-bottom:8px}
+.pricing-card .price{font-size:2.4rem;font-weight:800;margin-bottom:4px;color:#fff}
+.pricing-card .price-sub{font-size:0.82rem;color:#8888a0;margin-bottom:16px}
+.pricing-card ul{list-style:none;text-align:left;font-size:0.88rem;color:#b0b0c0;margin-bottom:20px}
+.pricing-card ul li{padding:4px 0;display:flex;align-items:center;gap:8px}
+.pricing-card ul li::before{content:'✓';color:#22c55e;font-weight:700}
+.pricing-card .btn{width:100%;justify-content:center}
+
+/* ── CTA ── */
+.cta-section{text-align:center;padding:80px 24px;background:linear-gradient(180deg,#0a0a12,#1a0a12)}
+.cta-section h2{font-size:clamp(1.5rem,3vw,2rem);margin-bottom:12px}
+.cta-section p{color:#8888a0;margin-bottom:28px;font-size:1rem}
+
+/* ── FAQ ── */
+.faq{max-width:640px;margin:0 auto}
+.faq-item{padding:16px 0;border-bottom:1px solid #1a1a28}
+.faq-item:last-child{border-bottom:none}
+.faq-q{font-weight:600;font-size:0.95rem;margin-bottom:6px}
+.faq-a{font-size:0.88rem;color:#8888a0;line-height:1.6}
+
+/* ── Footer ── */
+footer{text-align:center;padding:40px 24px;color:#3a3a4a;font-size:0.8rem;border-top:1px solid #12121e}
+
+/* ── Responsive ── */
+@media(max-width:640px){
+  .section{padding:48px 16px}
+  .hero{padding:60px 16px}
+  .hero-heart{font-size:3rem}
+  .features{grid-template-columns:1fr}
+  .gallery{grid-template-columns:1fr}
+  .pricing{grid-template-columns:1fr}
+  .builder{padding:20px}
+  .builder-row input{width:100%}
+}
+
+/* ── Toast ── */
+.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:#1a1a28;border:1px solid #2a2a3a;padding:10px 24px;border-radius:10px;font-size:0.85rem;color:#e8e8f0;z-index:999;opacity:0;transition:opacity .3s;pointer-events:none}
+.toast.show{opacity:1}
 </style>
 </head>
 <body>
-<div class="container">
 
-<h1>3D 心形粒子 · 定制表白页</h1>
-<p class="subtitle">一个链接，生成你的专属立体爱心告白页面</p>
+<!-- ═══ Hero ═══ -->
+<section class="hero">
+  <div class="hero-bg"></div>
+  <div class="hero-particles" id="heroParticles"></div>
+  <div class="hero-content">
+    <div class="hero-heart">💝</div>
+    <h1>你的专属<br>3D 爱心粒子告白页</h1>
+    <p>一个链接，打开就是满屏浪漫。<br>写上你和TA的名字，生成独一无二的告白页面。</p>
+    <div class="hero-btns">
+      <a class="btn btn-primary" href="#demo">🎯 在线体验</a>
+      <a class="btn btn-secondary" href="#pricing">💰 获取专属链接</a>
+    </div>
+  </div>
+  <div class="scroll-hint">向下滚动<br>↓</div>
+</section>
 
-<!-- 产品介绍 -->
-<div class="section">
-<h2>什么是这个？</h2>
-<p>一个用 Three.js 打造的 3D 心形粒子动画页面，搭配坠落粒子效果、可切换主题色、自定义漂浮文字。你只需要改网址里的名字，就能做出专属于 TA 的告白页。</p>
+<!-- ═══ Features ═══ -->
+<section class="section" id="features">
+<div class="section-inner">
+  <div class="section-label">✨ 效果特点</div>
+  <h2>每一个细节，都是浪漫</h2>
+  <p class="section-desc">从粒子到光影，从音乐到交互，用心到每个像素。</p>
+  <div class="features">
+    <div class="feature-card">
+      <div class="icon">💕</div>
+      <h3>3D 粒子心形</h3>
+      <p>数千颗红色发光粒子汇聚成心，缓缓旋转，流光溢彩。</p>
+    </div>
+    <div class="feature-card">
+      <div class="icon">🌊</div>
+      <h3>青色坠落流光</h3>
+      <p>流星般的光点从夜空坠落，为画面增添梦幻动感。</p>
+    </div>
+    <div class="feature-card">
+      <div class="icon">✏️</div>
+      <h3>专属名字显示</h3>
+      <p>「小美，我喜欢你 ♥」—— 打开页面直接看到 TA 的名字。</p>
+    </div>
+    <div class="feature-card">
+      <div class="icon">🎨</div>
+      <h3>5 种主题色</h3>
+      <p>红色经典、粉色甜美、冰蓝清冷、紫色梦幻、暖橘温馨。</p>
+    </div>
+    <div class="feature-card">
+      <div class="icon">📝</div>
+      <h3>自定义漂浮文字</h3>
+      <p>写你想说的话：勇气、陪伴、珍惜……最多 5 个词。</p>
+    </div>
+    <div class="feature-card">
+      <div class="icon">🎵</div>
+      <h3>浪漫钢琴 BGM</h3>
+      <p>可选播放背景钢琴曲，氛围感更浓。</p>
+    </div>
+  </div>
 </div>
+</section>
 
-<!-- 效果预览 -->
-<div class="section">
-<h2>效果预览</h2>
-<div class="preview-card">
-<div class="head">🔗 示例链接</div>
-<div class="body">
-<div class="row"><span class="arrow">→</span> <span>打开链接，3D 爱心旋转 + 发光粒子 + 坠落流光 + 浪漫漂浮文字</span></div>
-<div class="row"><span class="arrow">→</span> <span>页面底部面板可切换 5 种主题色（红/粉/蓝/紫/暖）</span></div>
-<div class="row"><span class="arrow">→</span> <span>支持背景钢琴音乐（可选播放）</span></div>
-<div class="row"><span class="arrow">→</span> <span>点击粒子可触发绽放效果</span></div>
+<!-- ═══ Gallery ═══ -->
+<section class="section" style="background:#08080f">
+<div class="section-inner">
+  <div class="section-label">📸 实拍效果</div>
+  <h2>看看它长什么样</h2>
+  <p class="section-desc">以下截图均为真实效果，未经过度美化。</p>
+  <div class="gallery">
+    <div class="gallery-item">
+      <img src="screenshots/01-全景-爱心粒子.png" alt="全景效果" loading="lazy">
+      <div class="label">❤️ 红色主题 · 全景</div>
+    </div>
+    <div class="gallery-item">
+      <img src="screenshots/02-告白-带参数.png" alt="告白效果" loading="lazy">
+      <div class="label">💌 显示「小美，我喜欢你 ♥」</div>
+    </div>
+  </div>
+  <div class="gallery gallery-2" style="margin-top:16px">
+    <div class="gallery-item">
+      <img src="screenshots/04-粉色主题.png" alt="粉色主题" loading="lazy">
+      <div class="label">💗 粉色主题</div>
+    </div>
+    <div class="gallery-item">
+      <img src="screenshots/03-粒子特写.png" alt="粒子特写" loading="lazy">
+      <div class="label">✨ 粒子发光细节</div>
+    </div>
+  </div>
 </div>
-</div>
-<a class="preview-btn" href="https://love-particle.netlify.app/" target="_blank">🔥 查看在线效果</a>
-</div>
+</section>
 
-<!-- URL 参数说明 -->
-<div class="section">
-<h2>定制方式 · URL 参数</h2>
-<p style="margin-bottom:10px;color:#a0a0b8">无需修改代码，只需在链接后面加参数，就能生成不同内容。</p>
+<!-- ═══ Demo ═══ -->
+<section class="section" id="demo">
+<div class="section-inner">
+  <div class="section-label">🎯 在线体验</div>
+  <h2>亲手试试效果</h2>
+  <p class="section-desc">点击下方按钮，打开带名字的演示页面，感受一下。</p>
+  <div style="display:flex;gap:12px;flex-wrap:wrap;margin-bottom:16px">
+    <a class="btn btn-primary" href="https://love-particle.netlify.app/?to=小美&from=小明&text1=勇气&text2=陪伴&text3=珍惜&text4=守护&text5=坦荡" target="_blank">🔥 打开演示页</a>
+    <a class="btn btn-secondary" href="https://love-particle.netlify.app/" target="_blank">🌐 默认效果</a>
+  </div>
+</div>
+</section>
 
-<table class="table">
-<tr><th>参数</th><th>说明</th><th>示例</th></tr>
-<tr><td>to</td><td>收件人名字</td><td>?to=小美</td></tr>
-<tr><td>from</td><td>寄件人名字</td><td>&from=小明</td></tr>
-<tr><td>text1 ~ text5</td><td>底部漂浮文字（最多5个）</td><td>&text1=勇气</td></tr>
-<tr><td>text</td><td>所有漂浮文字设为同一值</td><td>&text=陪伴</td></tr>
-<tr><td>t</td><td>主题色 (r/p/b/v/w)</td><td>&t=r（红色默认）</td></tr>
-</table>
+<!-- ═══ URL Builder ═══ -->
+<section class="section" style="background:#08080f" id="builder">
+<div class="section-inner">
+  <div class="section-label">🔧 在线定制</div>
+  <h2>自己配，看看效果</h2>
+  <p class="section-desc">填名字选主题，链接自动生成，复制就能用。</p>
 
-<div class="example-box">
-<span class="label">📌 基础用法</span>
-<code>https://love-particle.netlify.app/?to=小美&amp;from=小明</code>
-<div class="desc">→ 显示「小美，我喜欢你 ♥」+ 「—— 小明」</div>
+  <div class="builder">
+    <div class="builder-row">
+      <label>收件人</label>
+      <input type="text" id="bTo" value="小美" placeholder="TA的名字" maxlength="12">
+    </div>
+    <div class="builder-row">
+      <label>寄件人</label>
+      <input type="text" id="bFrom" value="小明" placeholder="你的名字" maxlength="12">
+    </div>
+    <div class="builder-row">
+      <label>主题色</label>
+      <select id="bTheme">
+        <option value="r">❤️ 红色</option>
+        <option value="p">💗 粉色</option>
+        <option value="b">💙 蓝色</option>
+        <option value="v">💜 紫色</option>
+        <option value="w">🧡 暖橘</option>
+      </select>
+    </div>
+    <div class="builder-row">
+      <label>文字1~5</label>
+      <input type="text" id="bT1" value="勇气" maxlength="6" style="width:80px">
+      <input type="text" id="bT2" value="陪伴" maxlength="6" style="width:80px">
+      <input type="text" id="bT3" value="珍惜" maxlength="6" style="width:80px">
+      <input type="text" id="bT4" value="守护" maxlength="6" style="width:80px">
+      <input type="text" id="bT5" value="坦荡" maxlength="6" style="width:80px">
+    </div>
+    <div class="builder-url">
+      <code id="bUrl">https://love-particle.netlify.app/?to=小美&from=小明&text1=勇气&text2=陪伴&text3=珍惜&text4=守护&text5=坦荡</code>
+      <button class="copy-btn" id="bCopy">📋 复制</button>
+    </div>
+  </div>
 </div>
+</section>
 
-<div class="example-box">
-<span class="label">📌 完整定制</span>
-<code>https://love-particle.netlify.app/?to=小美&amp;from=小明&amp;text1=勇气&amp;text2=陪伴&amp;text3=珍惜&amp;text4=守护&amp;text5=坦荡&amp;t=p</code>
-<div class="desc">→ 粉色主题 + 自定义 5 个文字 + 收寄件人</div>
+<!-- ═══ How It Works ═══ -->
+<section class="section">
+<div class="section-inner">
+  <div class="section-label">📋 使用说明</div>
+  <h2>三步搞定</h2>
+  <p class="section-desc">下单 → 我给链接 → 你发给TA，就这么简单。</p>
+  <div class="steps">
+    <div class="step">
+      <div class="step-num">1</div>
+      <h3>告诉我名字</h3>
+      <p>收件人、寄件人、想写的文字、喜欢的颜色</p>
+    </div>
+    <div class="step">
+      <div class="step-num">2</div>
+      <h3>我生成链接</h3>
+      <p>做好专属链接，发给你</p>
+    </div>
+    <div class="step">
+      <div class="step-num">3</div>
+      <h3>直接发给TA</h3>
+      <p>用微信/短信/任何方式，把链接发过去就行</p>
+    </div>
+  </div>
 </div>
-</div>
+</section>
 
-<!-- 场景 -->
-<div class="section">
-<h2>适用场景</h2>
-<p><span class="tag">告白</span> <span class="tag">情人节</span> <span class="tag">七夕</span> <span class="tag">纪念日</span> <span class="tag">生日祝福</span> <span class="tag">520</span> <span class="tag">求婚</span></p>
-<p style="margin-top:10px;color:#a0a0b8">扫码打开即显效果，适合写在贺卡上、发朋友圈、做成 QR 码礼物。</p>
+<!-- ═══ Pricing ═══ -->
+<section class="section" style="background:#08080f" id="pricing">
+<div class="section-inner">
+  <div class="section-label">💰 价格</div>
+  <h2>选一个适合你的</h2>
+  <p class="section-desc">一次购买，永久有效，不限查看次数。</p>
+  <div class="pricing">
+    <div class="pricing-card">
+      <h3>简约版</h3>
+      <div class="price">¥6.66</div>
+      <div class="price-sub">一杯豆浆钱 💰</div>
+      <ul>
+        <li>专属链接 × 1</li>
+        <li>收件人名字</li>
+        <li>寄件人名字</li>
+        <li>永久有效</li>
+      </ul>
+      <a class="btn btn-secondary" href="#order">去下单</a>
+    </div>
+    <div class="pricing-card featured">
+      <div class="badge">🔥 推荐</div>
+      <h3>浪漫版</h3>
+      <div class="price">¥13.14</div>
+      <div class="price-sub">一生一世 💕</div>
+      <ul>
+        <li>专属链接 × 1</li>
+        <li>收件人 + 寄件人</li>
+        <li>5 个自定义文字</li>
+        <li>任选主题色</li>
+        <li>永久有效</li>
+      </ul>
+      <a class="btn btn-primary" href="#order">去下单</a>
+    </div>
+  </div>
 </div>
+</section>
 
-<!-- 卖给顾客 -->
-<div class="section">
-<h2>顾客交付方式</h2>
-<p>生成专属链接 → 用二维码工具(如草料二维码)生成 QR 码 → 发给顾客即可。</p>
-<div class="example-box">
-<span class="label">👤 顾客 A（给小花）</span>
-<code>https://love-particle.netlify.app/?to=小花&amp;from=阿强</code>
+<!-- ═══ FAQ ═══ -->
+<section class="section">
+<div class="section-inner">
+  <div class="section-label">❓ 常见问题</div>
+  <h2>你可能想问</h2>
+  <div class="faq" style="margin-top:24px">
+    <div class="faq-item">
+      <div class="faq-q">对方需要下载东西吗？</div>
+      <div class="faq-a">完全不用。打开链接就是网页，浏览器直接看，iPhone/安卓/电脑都行。</div>
+    </div>
+    <div class="faq-item">
+      <div class="faq-q">链接会失效吗？</div>
+      <div class="faq-a">永久有效，什么时候打开都在。</div>
+    </div>
+    <div class="faq-item">
+      <div class="faq-q">我想改名字还能改吗？</div>
+      <div class="faq-a">随时找我，免费修改。</div>
+    </div>
+    <div class="faq-item">
+      <div class="faq-q">下单后多久能做好？</div>
+      <div class="faq-a">5 分钟内发给你。</div>
+    </div>
+    <div class="faq-item">
+      <div class="faq-q">怎么下单？</div>
+      <div class="faq-a">闲鱼直接拍下，备注告诉我收件人/寄件人名字和想写的文字就行。</div>
+    </div>
+  </div>
 </div>
-<div class="example-box">
-<span class="label">👤 顾客 B（给丽丽）</span>
-<code>https://love-particle.netlify.app/?to=丽丽&amp;from=阿伟&amp;text1=每天&amp;text2=都想&amp;text3=见到你&amp;t=v</code>
-</div>
-</div>
+</section>
 
-<!-- CTA -->
-<div class="cta">
-<p>一个链接 · 一份心意 · 一种浪漫</p>
-<a class="btn" href="https://love-particle.netlify.app/?to=小美&from=小明" target="_blank">💝 看示例效果</a>
-</div>
+<!-- ═══ CTA ═══ -->
+<section class="cta-section" id="order">
+  <h2>💝 想要一个专属链接？</h2>
+  <p>告诉我你想写的话，我把浪漫装进一个链接里。</p>
+  <a class="btn btn-primary" href="https://love-particle.netlify.app/?to=小美&from=小明&text1=勇气&text2=陪伴&text3=珍惜&text4=守护&text5=坦荡" target="_blank" style="font-size:1.1rem;padding:16px 40px">🔥 先看效果再下单</a>
+</section>
 
 <footer>
-love-particle.netlify.app &nbsp;·&nbsp; 3D 粒子告白页
+  love-particle.netlify.app &nbsp;·&nbsp; 3D 心形粒子表白页
 </footer>
 
-</div>
+<div class="toast" id="toast"></div>
+
+<script>
+// ── Hero floating particles ──
+(function(){
+  const c=document.getElementById('heroParticles');
+  for(let i=60;i--;){
+    const s=document.createElement('span');
+    s.style.left=Math.random()*100+'%';
+    s.style.width=s.style.height=Math.random()*3+1+'px';
+    s.style.animationDuration=Math.random()*20+10+'s';
+    s.style.animationDelay=Math.random()*20+'s';
+    s.style.background=['#f06a8a','#ff8c5a','#f06a8a88','#ffffff33'][Math.random()*4|0];
+    c.appendChild(s);
+  }
+})();
+
+// ── URL Builder ──
+const BASE='https://love-particle.netlify.app/';
+const $=id=>document.getElementById(id);
+const toEl=$('bTo'),fromEl=$('bFrom'),themeEl=$('bTheme');
+const t1=$('bT1'),t2=$('bT2'),t3=$('bT3'),t4=$('bT4'),t5=$('bT5');
+const urlEl=$('bUrl'),copyEl=$('bCopy'),toast=$('toast');
+
+function buildUrl(){
+  const p=new URLSearchParams();
+  const v=toEl.value.trim();if(v)p.set('to',v);
+  const f=fromEl.value.trim();if(f)p.set('from',f);
+  if(themeEl.value!=='r')p.set('t',themeEl.value);
+  [t1,t2,t3,t4,t5].forEach((el,i)=>{
+    const val=el.value.trim();if(val)p.set('text'+(i+1),val);
+  });
+  const q=p.toString();urlEl.textContent=BASE+(q?'?'+q:'');
+}
+function update(){buildUrl()}
+[toEl,fromEl,t1,t2,t3,t4,t5].forEach(el=>el.addEventListener('input',update));
+themeEl.addEventListener('change',update);
+
+copyEl.addEventListener('click',function(){
+  navigator.clipboard.writeText(urlEl.textContent).then(()=>{
+    copyEl.textContent='✅ 已复制';
+    copyEl.classList.add('copied');
+    setTimeout(()=>{copyEl.textContent='📋 复制';copyEl.classList.remove('copied');},2000);
+  }).catch(()=>{
+    toast.textContent='复制失败，请手动选择复制';
+    toast.classList.add('show');
+    setTimeout(()=>toast.classList.remove('show'),2500);
+  });
+});
+
+// init
+buildUrl();
+</script>
 </body>
 </html>
