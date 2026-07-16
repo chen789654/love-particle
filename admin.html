@@ -24,23 +24,22 @@ h1{font-size:1.1rem;font-weight:600;margin-bottom:4px;letter-spacing:1px}
 .btn:hover{background:#f06a8a44}
 .btn.done{background:#22c55e22;color:#22c55e;border-color:#22c55e44}
 
-/* ── 二维码区域 ── */
+/* ── 卡片展示 ── */
 .qr-section{border-top:1px solid #1e1e2e;margin-top:20px;padding-top:20px;text-align:center}
 .qr-section .label{font-size:0.78rem;color:#555;letter-spacing:1px;margin-bottom:12px}
-.qr-wrapper{display:inline-block;background:#fff;border-radius:12px;padding:12px;box-shadow:0 0 30px rgba(240,106,138,0.08)}
-.qr-wrapper img{display:block;width:200px;height:200px;border-radius:8px}
+.card-preview{display:inline-block;border-radius:14px;overflow:hidden;box-shadow:0 0 40px rgba(240,106,138,0.12)}
+.card-preview canvas{display:block;max-width:100%;height:auto}
 .qr-actions{display:flex;gap:10px;justify-content:center;margin-top:14px;flex-wrap:wrap}
 
 .toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:#1a1a28;border:1px solid #2a2a3a;padding:10px 24px;border-radius:10px;font-size:0.85rem;color:#e8e8f0;z-index:999;opacity:0;transition:opacity .3s;pointer-events:none}
 .toast.show{opacity:1}
-.qr-wrapper img{display:block;width:200px;height:200px;border-radius:8px;image-rendering:pixelated}
 </style>
 </head>
 <body>
 
 <div class="card">
   <h1>🔧 链接生成器</h1>
-  <div class="sub">填好信息 → 下载二维码 → 发给顾客</div>
+  <div class="sub">填好信息 → 下载告白卡片 → 发给顾客</div>
 
   <div class="field">
     <label>收件人</label>
@@ -76,15 +75,15 @@ h1{font-size:1.1rem;font-weight:600;margin-bottom:4px;letter-spacing:1px}
     <button class="btn" id="bCopy">📋 复制</button>
   </div>
 
-  <!-- ═══ 二维码 ═══ -->
+  <!-- ═══ 告白卡片 ═══ -->
   <div class="qr-section" id="qrSection">
-    <div class="label">📱 顾客收到的二维码</div>
-    <div class="qr-wrapper">
-      <img id="qrImg" src="" alt="二维码">
+    <div class="label">💌 顾客收到的告白卡片</div>
+    <div class="card-preview">
+      <canvas id="cardCanvas" width="500" height="620"></canvas>
     </div>
     <div class="qr-actions">
-      <button class="btn" id="bDownload">⬇️ 下载二维码</button>
-      <button class="btn" id="bPreview">👁 预览效果</button>
+      <button class="btn" id="bDownload">⬇️ 下载卡片</button>
+      <button class="btn" id="bPreview">👁 预览粒子效果</button>
     </div>
   </div>
 </div>
@@ -92,7 +91,24 @@ h1{font-size:1.1rem;font-weight:600;margin-bottom:4px;letter-spacing:1px}
 <div class="toast" id="toast"></div>
 
 <script>
-// ── 获取基准路径 ──
+// ══════════════════════════════════════════
+//  配置
+// ══════════════════════════════════════════
+
+const QR_API='https://api.qrserver.com/v1/create-qr-code/?size=320x320&bgcolor=ffffff&data=';
+const CARD_W=500, CARD_H=620;
+const THEME_COLORS={
+  r:{primary:'#ff2d55',dark:'#cc0022',bg1:'#0a0306',bg2:'#1a0a12',glow:'rgba(255,45,85,0.15)'},
+  p:{primary:'#ff4d8a',dark:'#cc2255',bg1:'#10050a',bg2:'#1a0a14',glow:'rgba(255,77,138,0.15)'},
+  b:{primary:'#0077ff',dark:'#0044aa',bg1:'#050510',bg2:'#0a0a1a',glow:'rgba(0,119,255,0.15)'},
+  v:{primary:'#6c5ce7',dark:'#4433aa',bg1:'#080510',bg2:'#100a1a',glow:'rgba(108,92,231,0.15)'},
+  w:{primary:'#ff6b35',dark:'#cc4400',bg1:'#0a0805',bg2:'#1a0e08',glow:'rgba(255,107,53,0.15)'},
+};
+
+// ══════════════════════════════════════════
+//  DOM 引用
+// ══════════════════════════════════════════
+
 function getBase(){
   let p=location.pathname;
   p=p.replace(/admin\.html$/,'');
@@ -100,16 +116,153 @@ function getBase(){
   return location.origin+p;
 }
 const BASE=getBase();
-const QR_API='https://api.qrserver.com/v1/create-qr-code/?size=400x400&bgcolor=ffffff&data=';
-
 const $=id=>document.getElementById(id);
 const toEl=$('bTo'),fromEl=$('bFrom'),themeEl=$('bTheme');
 const t1=$('bT1'),t2=$('bT2'),t3=$('bT3'),t4=$('bT4'),t5=$('bT5');
 const urlEl=$('bUrl'),copyEl=$('bCopy'),toast=$('toast');
-const qrImg=$('qrImg'),downloadBtn=$('bDownload'),previewBtn=$('bPreview');
+const canvas=$('cardCanvas'),ctx=canvas.getContext('2d');
+const downloadBtn=$('bDownload'),previewBtn=$('bPreview');
 
-// ── 当前 URL（供下载用） ──
 let currentUrl='';
+
+// ══════════════════════════════════════════
+//  绘制告白卡片
+// ══════════════════════════════════════════
+
+function drawCard(qrImg){
+  const to=toEl.value.trim()||'TA';
+  const from=fromEl.value.trim()||'';
+  const theme=THEME_COLORS[themeEl.value]||THEME_COLORS.r;
+
+  ctx.clearRect(0,0,CARD_W,CARD_H);
+
+  // ── 背景渐变 ──
+  const bg=ctx.createRadialGradient(250,250,50,250,250,450);
+  bg.addColorStop(0,theme.bg2);
+  bg.addColorStop(1,theme.bg1);
+  ctx.fillStyle=bg;
+  ctx.fillRect(0,0,CARD_W,CARD_H);
+
+  // ── 发光光晕 ──
+  const glow=ctx.createRadialGradient(250,200,10,250,200,200);
+  glow.addColorStop(0,theme.glow);
+  glow.addColorStop(1,'transparent');
+  ctx.fillStyle=glow;
+  ctx.fillRect(0,0,CARD_W,350);
+
+  // ── 顶部装饰线 ──
+  ctx.shadowColor=theme.primary;
+  ctx.shadowBlur=20;
+  ctx.strokeStyle=theme.primary;
+  ctx.lineWidth=2;
+  ctx.beginPath();
+  ctx.moveTo(100,38);
+  ctx.lineTo(250,38);
+  ctx.lineTo(400,38);
+  ctx.stroke();
+  ctx.shadowBlur=0;
+
+  // ── 顶部爱心 ──
+  ctx.font='28px sans-serif';
+  ctx.textAlign='center';
+  ctx.fillStyle='#fff';
+  ctx.fillText('💕',250,82);
+
+  // ── 收件人 ──
+  ctx.font='bold 28px "Noto Sans SC","PingFang SC","Microsoft YaHei",sans-serif';
+  ctx.shadowColor=theme.primary;
+  ctx.shadowBlur=30;
+  ctx.fillStyle=theme.primary;
+  ctx.fillText('给 '+to,250,130);
+
+  // ── "专属告白" ──
+  ctx.shadowBlur=0;
+  ctx.font='18px "Noto Sans SC","PingFang SC","Microsoft YaHei",sans-serif';
+  ctx.fillStyle='rgba(255,255,255,0.5)';
+  ctx.fillText('专 属 告 白',250,166);
+
+  // ── 分隔线 ──
+  ctx.strokeStyle='rgba(255,255,255,0.08)';
+  ctx.lineWidth=1;
+  ctx.beginPath();
+  ctx.moveTo(80,190);
+  ctx.lineTo(420,190);
+  ctx.stroke();
+
+  // ── 二维码 ──
+  if(qrImg && qrImg.complete && qrImg.naturalWidth>0){
+    const qrSize=240;
+    const qrX=(CARD_W-qrSize)/2;
+    const qrY=210;
+    // 白色底
+    ctx.shadowColor='rgba(0,0,0,0.3)';
+    ctx.shadowBlur=20;
+    ctx.fillStyle='#fff';
+    ctx.beginPath();
+    ctx.roundRect(qrX-8,qrY-8,qrSize+16,qrSize+16,8);
+    ctx.fill();
+    ctx.shadowBlur=0;
+    // 二维码
+    ctx.drawImage(qrImg,qrX,qrY,qrSize,qrSize);
+  }
+
+  // ── 底部文字 ──
+  ctx.font='14px "Noto Sans SC","PingFang SC","Microsoft YaHei",sans-serif';
+  ctx.textAlign='center';
+  ctx.fillStyle='rgba(255,255,255,0.3)';
+  ctx.fillText('扫码开启专属浪漫',250,494);
+
+  // ── 寄件人 ──
+  if(from){
+    ctx.font='16px "Noto Sans SC","PingFang SC","Microsoft YaHei",sans-serif';
+    ctx.textAlign='right';
+    ctx.fillStyle='rgba(255,255,255,0.5)';
+    ctx.fillText('—— '+from,460,580);
+  }
+
+  // ── 小粒子装饰（角落） ──
+  drawSparkle(ctx,60,500,theme.primary);
+  drawSparkle(ctx,440,80,theme.primary);
+  drawSparkle(ctx,420,540,theme.primary);
+  drawSparkle(ctx,80,120,theme.primary);
+}
+
+function drawSparkle(ctx,x,y,color){
+  ctx.save();
+  ctx.translate(x,y);
+  ctx.shadowColor=color;
+  ctx.shadowBlur=12;
+  ctx.fillStyle=color;
+  ctx.globalAlpha=0.4;
+  ctx.beginPath();
+  ctx.arc(0,0,3,0,Math.PI*2);
+  ctx.fill();
+  ctx.globalAlpha=0.15;
+  ctx.beginPath();
+  ctx.arc(0,0,7,0,Math.PI*2);
+  ctx.fill();
+  ctx.restore();
+}
+
+// roundRect polyfill for canvas
+if(!CanvasRenderingContext2D.prototype.roundRect){
+  CanvasRenderingContext2D.prototype.roundRect=function(x,y,w,h,r){
+    if(r>w/2)r=w/2;
+    if(r>h/2)r=h/2;
+    this.moveTo(x+r,y);
+    this.arcTo(x+w,y,x+w,y+h,r);
+    this.arcTo(x+w,y+h,x,y+h,r);
+    this.arcTo(x,y+h,x,y,r);
+    this.arcTo(x,y,x+w,y,r);
+    return this;
+  };
+}
+
+// ══════════════════════════════════════════
+//  更新卡片
+// ══════════════════════════════════════════
+
+let qrCache=null;
 
 function buildUrl(){
   const p=new URLSearchParams();
@@ -124,15 +277,28 @@ function buildUrl(){
   currentUrl=BASE+(q?'?'+q:'');
   urlEl.textContent=currentUrl;
 
-  // 更新二维码
-  qrImg.src=QR_API+encodeURIComponent(currentUrl);
+  // 加载 QR 码图片，然后绘制卡片
+  const img=new Image();
+  img.crossOrigin='anonymous';
+  img.onload=function(){
+    qrCache=img;
+    drawCard(img);
+  };
+  img.onerror=function(){
+    drawCard(null);
+  };
+  img.src=QR_API+encodeURIComponent(currentUrl);
 }
+
 function update(){buildUrl()}
 
 [toEl,fromEl,t1,t2,t3,t4,t5].forEach(el=>el.addEventListener('input',update));
 themeEl.addEventListener('change',update);
 
-// ── 复制链接 ──
+// ══════════════════════════════════════════
+//  复制链接
+// ══════════════════════════════════════════
+
 copyEl.addEventListener('click',function(){
   navigator.clipboard.writeText(currentUrl).then(()=>{
     copyEl.textContent='✅ 已复制';
@@ -145,39 +311,34 @@ copyEl.addEventListener('click',function(){
   });
 });
 
-// ── 下载二维码 ──
+// ══════════════════════════════════════════
+//  下载卡片
+// ══════════════════════════════════════════
+
 downloadBtn.addEventListener('click',function(){
   const name=toEl.value.trim()||'love';
-  // 先加载图片到 canvas 再下载（绕过跨域问题）
-  const img=new Image();
-  img.crossOrigin='anonymous';
-  img.onload=function(){
-    const c=document.createElement('canvas');
-    c.width=img.width;
-    c.height=img.height;
-    const ctx=c.getContext('2d');
-    ctx.drawImage(img,0,0);
-    c.toBlob(function(blob){
-      const a=document.createElement('a');
-      a.href=URL.createObjectURL(blob);
-      a.download=name+'-爱心告白.png';
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      URL.revokeObjectURL(a.href);
-    },'image/png');
-  };
-  img.onerror=function(){
-    // fallback: 直接打开图片让用户自己保存
-    window.open(qrImg.src,'_blank');
-  };
-  img.src=qrImg.src;
+  canvas.toBlob(function(blob){
+    const a=document.createElement('a');
+    a.href=URL.createObjectURL(blob);
+    a.download=name+'-告白卡片.png';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(a.href);
+  },'image/png');
 });
 
-// ── 预览效果 ──
+// ══════════════════════════════════════════
+//  预览效果
+// ══════════════════════════════════════════
+
 previewBtn.addEventListener('click',function(){
   window.open(currentUrl,'_blank');
 });
+
+// ══════════════════════════════════════════
+//  初始化
+// ══════════════════════════════════════════
 
 buildUrl();
 </script>
