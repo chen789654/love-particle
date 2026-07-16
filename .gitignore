@@ -1,8 +1,31 @@
+# 依赖 / 缓存
 node_modules/
 __pycache__/
 *.pyc
 .DS_Store
 Thumbs.db
-*.spec
+
+# 构建产物
 dist/
 build/
+*.spec
+
+# Netlify 部署缓存
+.netlify/
+
+# 开发试错文件
+vercel-link/
+worker/
+main.py
+build.bat
+config.json
+test_clean.html
+README.txt
+README.md
+
+# 商品素材（不上 Git）
+闲鱼商品描述.md
+梦幻粒子特效.spec
+
+# Playwright 截图缓存
+.playwright-mcp/
