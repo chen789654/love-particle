@@ -217,8 +217,8 @@ footer{text-align:center;padding:40px 24px;color:#3a3a4a;font-size:0.8rem;border
   <h2>亲手试试效果</h2>
   <p class="section-desc">点击下方按钮，打开带名字的演示页面，感受一下。</p>
   <div style="display:flex;gap:12px;flex-wrap:wrap;margin-bottom:16px">
-      <a class="btn btn-primary" href="/?to=小美&from=小明&text1=勇气&text2=陪伴&text3=珍惜&text4=守护&text5=坦荡" target="_blank">🔥 打开演示页</a>
-      <a class="btn btn-secondary" href="/" target="_blank">🌐 默认效果</a>
+      <a class="btn btn-primary" id="demoBtn1" href="/?to=小美&from=小明&text1=勇气&text2=陪伴&text3=珍惜&text4=守护&text5=坦荡" target="_blank">🔥 打开演示页</a>
+      <a class="btn btn-secondary" id="demoBtn2" href="/" target="_blank">🌐 默认效果</a>
   </div>
 </div>
 </section>
@@ -362,11 +362,11 @@ footer{text-align:center;padding:40px 24px;color:#3a3a4a;font-size:0.8rem;border
 <section class="cta-section" id="order">
   <h2>💝 想要一个专属链接？</h2>
   <p>告诉我你想写的话，我把浪漫装进一个链接里。</p>
-  <a class="btn btn-primary" href="/?to=小美&from=小明&text1=勇气&text2=陪伴&text3=珍惜&text4=守护&text5=坦荡" target="_blank" style="font-size:1.1rem;padding:16px 40px">🔥 先看效果再下单</a>
+  <a class="btn btn-primary" id="demoBtn3" href="/?to=小美&from=小明&text1=勇气&text2=陪伴&text3=珍惜&text4=守护&text5=坦荡" target="_blank" style="font-size:1.1rem;padding:16px 40px">🔥 先看效果再下单</a>
 </section>
 
 <footer>
-  <a href="/" style="color:#3a3a4a;text-decoration:none">love-particle.netlify.app</a> &nbsp;·&nbsp; 3D 心形粒子表白页
+  <a href="/" id="footerLink" style="color:#3a3a4a;text-decoration:none">love-particle.netlify.app</a> &nbsp;·&nbsp; 3D 心形粒子表白页
 </footer>
 
 <div class="toast" id="toast"></div>
@@ -386,12 +386,28 @@ footer{text-align:center;padding:40px 24px;color:#3a3a4a;font-size:0.8rem;border
   }
 })();
 
-// ── URL Builder ──
-const BASE=location.origin+'/';
+// ── 获取基准路径（兼容 GitHub Pages 子路径 & Netlify 根路径） ──
+function getBase(){
+  let p=location.pathname;
+  p=p.replace(/landing\.html$/,'');
+  if(!p.endsWith('/'))p+='/';
+  return location.origin+p;
+}
+const BASE=getBase();
 const $=id=>document.getElementById(id);
 const toEl=$('bTo'),fromEl=$('bFrom'),themeEl=$('bTheme');
 const t1=$('bT1'),t2=$('bT2'),t3=$('bT3'),t4=$('bT4'),t5=$('bT5');
 const urlEl=$('bUrl'),copyEl=$('bCopy'),toast=$('toast');
+
+// ── 修正演示链接的路径 ──
+[
+  $('demoBtn1'),$('demoBtn2'),$('demoBtn3')
+].forEach(el=>{
+  if(el)el.href=BASE+el.getAttribute('href').slice(1);
+});
+// 修正 footer 链接
+const fl=$('footerLink');
+if(fl)fl.href=BASE;
 
 function buildUrl(){
   const p=new URLSearchParams();
