@@ -245,13 +245,13 @@ var THEMES = {
   purple:{out:['#6c5ce7','#a29bfe'],inner:['#4433aa','#7c6cf0'],bg:'#080510'},
   gold:{out:['#fdcb6e','#f39c12'],inner:['#bb7700','#fdd835'],bg:'#100a05'},
   emerald:{out:['#00b894','#55efc4'],inner:['#008866','#00d4aa'],bg:'#051008'},
-  red:{out:['#e74c3c','#ff6b6b'],inner:['#8e1a1a','#e74c3c'],bg:'#0a0505'},
+  red:{out:['#ff2d55','#ff5e7e'],inner:['#cc0022','#ff2d55'],bg:'#0a0306'},
   sunset:{out:['#ff6b35','#ffd700'],inner:['#cc4400','#ff9933'],bg:'#0a0805'},
   ice:{out:['#7ec8e3','#dcf0fa'],inner:['#4a9bb5','#a8d8ea'],bg:'#05080a'},
   sakura:{out:['#ffb7c5','#ffdde1'],inner:['#ff8da1','#ffb7c5'],bg:'#0a0508'},
   nebula:{out:['#9b59b6','#e056fd'],inner:['#5b2c8a','#9b59b6'],bg:'#050510'}
 };
-var currentTheme = 'ocean';
+var currentTheme = 'red';
 var themeColors = THEMES[currentTheme];
 
 var container = document.getElementById('container');
@@ -410,94 +410,133 @@ function updateBurstCommon(geo, pos, orig, rnd, vel, C, dt, s) {
 }
 
 function makeHeartEffect() {
-  var C = 180000, SC = 7200, scl = 0.10;
-  var pos = new Float32Array(C*3), col = new Float32Array(C*3), sza = new Float32Array(C);
-  var rnd = new Float32Array(C*3), orig = new Float32Array(C*3);
-  var origCol = new Float32Array(C*3);
-  var cL = new THREE.Color(themeColors.out[0]);
-  var cR = cL.clone();
-  cR.offsetHSL(0.13, 0.1, 0.15);
-  for (var i = 0; i < C; i++) {
+  var grp = new THREE.Group();
+  var objects = [];
+
+  // ===== 心形：红色发光粒子 =====
+  var HC = 160000, scl = 0.085, heartY = 0.45;
+  var pos = new Float32Array(HC*3), col = new Float32Array(HC*3), sza = new Float32Array(HC);
+  var rnd = new Float32Array(HC*3), orig = new Float32Array(HC*3);
+  var origCol = new Float32Array(HC*3);
+  var cL = new THREE.Color('#ff2d55'), cR = new THREE.Color('#cc0022');
+  for (var i = 0; i < HC; i++) {
     var i3 = i*3, t = Math.random() * Math.PI * 2;
     var sx = 16 * Math.pow(Math.sin(t), 3), sy = 13*Math.cos(t) - 5*Math.cos(2*t) - 2*Math.cos(3*t) - Math.cos(4*t);
     var d = (Math.random() + Math.random() - 1) * 1.6, vf = Math.sqrt(Math.max(0.001, 1 - d*d*0.18));
-    var px = sx * scl * vf + d * 0.06 * (scl/0.055), py = sy * scl * vf, pz = d * 0.30 * vf * (scl/0.055);
+    var px = sx * scl * vf + d * 0.06 * (scl/0.055);
+    var py = sy * scl * vf + heartY;
+    var pz = d * 0.30 * vf * (scl/0.055);
     pos[i3] = px; pos[i3+1] = py; pos[i3+2] = pz; orig[i3] = px; orig[i3+1] = py; orig[i3+2] = pz;
     var mix = (px / (16 * scl * 1.2) + 0.5); mix = Math.max(0, Math.min(1, mix));
-    var cs;
-    if (mix < 0.4) { cs = cL.clone(); }
-    else if (mix > 0.6) { cs = cR.clone(); }
-    else { cs = cL.clone().lerp(cR, (mix - 0.4) * 5); }
-    cs.multiplyScalar(0.9 + Math.random() * 0.4);
+    var cs = cL.clone().lerp(cR, mix);
+    cs.multiplyScalar(0.85 + Math.random() * 0.4);
     col[i3] = cs.r; col[i3+1] = cs.g; col[i3+2] = cs.b;
     origCol[i3] = col[i3]; origCol[i3+1] = col[i3+1]; origCol[i3+2] = col[i3+2];
-    sza[i] = 0.5 + Math.random() * 0.7; rnd[i3] = Math.random(); rnd[i3+1] = Math.random(); rnd[i3+2] = Math.random();
+    sza[i] = 0.45 + Math.random() * 0.6; rnd[i3] = Math.random(); rnd[i3+1] = Math.random(); rnd[i3+2] = Math.random();
   }
-  var geo = new THREE.BufferGeometry();
-  geo.setAttribute('position', new THREE.BufferAttribute(pos, 3));
-  geo.setAttribute('color', new THREE.BufferAttribute(col, 3));
-  geo.setAttribute('size', new THREE.BufferAttribute(sza, 1));
-  geo.userData = {originalPos: orig, randoms: rnd};
+  var hGeo = new THREE.BufferGeometry();
+  hGeo.setAttribute('position', new THREE.BufferAttribute(pos, 3));
+  hGeo.setAttribute('color', new THREE.BufferAttribute(col, 3));
+  hGeo.setAttribute('size', new THREE.BufferAttribute(sza, 1));
+  hGeo.userData = {originalPos: orig, randoms: rnd};
+  var hMat = new THREE.PointsMaterial({size:0.5,map:glowTex,blending:THREE.AdditiveBlending,depthWrite:0,transparent:1,opacity:1,vertexColors:1,sizeAttenuation:1});
+  var hMesh = new THREE.Points(hGeo, hMat);
+  grp.add(hMesh); objects.push(hMesh);
 
-  var sp = new Float32Array(SC*3), ssz = new Float32Array(SC);
-  for (var i = 0; i < SC; i++) { var i3=i*3, th=Math.random()*Math.PI*2, ph=Math.acos(2*Math.random()-1), rr=1.2+Math.random()*0.8;
-    sp[i3]=rr*Math.sin(ph)*Math.cos(th); sp[i3+1]=rr*Math.cos(ph)*0.6; sp[i3+2]=rr*Math.sin(ph)*Math.sin(th); ssz[i]=0.3+Math.random()*0.5; }
-  var sg = new THREE.BufferGeometry(); sg.setAttribute('position', new THREE.BufferAttribute(sp, 3)); sg.setAttribute('size', new THREE.BufferAttribute(ssz, 1));
-  var sc1 = new THREE.Color(themeColors.out[0]), scolor = sc1.clone().lerp(new THREE.Color('#ffffff'), 0.3);
-  var sm = new THREE.Points(sg, new THREE.PointsMaterial({size:0.15,map:glowTex,blending:THREE.AdditiveBlending,depthWrite:0,transparent:1,opacity:0.6,color:scolor,sizeAttenuation:1}));
+  // ===== 坠落粒子：白色，像流体/沙漏 =====
+  var FC = 14000;
+  var fPos = new Float32Array(FC*3), fCol = new Float32Array(FC*3), fSz = new Float32Array(FC);
+  var fSpeed = new Float32Array(FC), fTop = -0.95, fBottom = -1.8;
+  for (var i = 0; i < FC; i++) {
+    var i3 = i*3;
+    fPos[i3] = (Math.random()-0.5) * 1.0;
+    fPos[i3+1] = fBottom + Math.random() * (fTop - fBottom);
+    fPos[i3+2] = (Math.random()-0.5) * 0.5;
+    fCol[i3] = 1; fCol[i3+1] = 1; fCol[i3+2] = 1;
+    fSz[i] = 0.2 + Math.random() * 0.35;
+    fSpeed[i] = 0.5 + Math.random() * 0.9;
+  }
+  var fGeo = new THREE.BufferGeometry();
+  fGeo.setAttribute('position', new THREE.BufferAttribute(fPos, 3));
+  fGeo.setAttribute('color', new THREE.BufferAttribute(fCol, 3));
+  fGeo.setAttribute('size', new THREE.BufferAttribute(fSz, 1));
+  var fMat = new THREE.PointsMaterial({size:0.28,map:glowTex,blending:THREE.AdditiveBlending,depthWrite:0,transparent:1,opacity:0.85,vertexColors:1,sizeAttenuation:1});
+  var fMesh = new THREE.Points(fGeo, fMat);
+  grp.add(fMesh); objects.push(fMesh);
 
-  var mat = new THREE.PointsMaterial({size:0.55,map:glowTex,blending:THREE.AdditiveBlending,depthWrite:0,transparent:1,opacity:1,vertexColors:1,sizeAttenuation:1});
-  var mesh = new THREE.Points(geo, mat);
-  var grp = new THREE.Group(); grp.add(mesh);
+  // ===== 底部海洋：红/紫/橙渐变 =====
+  var OC = 45000;
+  var oPos = new Float32Array(OC*3), oCol = new Float32Array(OC*3), oSz = new Float32Array(OC);
+  var oRnd = new Float32Array(OC*2);
+  var oceanY = -1.9;
+  var oceanColors = [new THREE.Color('#ff1a40'), new THREE.Color('#9b59b6'), new THREE.Color('#ff8c1a')];
+  for (var i = 0; i < OC; i++) {
+    var i3 = i*3;
+    var ox = (Math.random()-0.5) * 5.5;
+    oPos[i3] = ox;
+    oPos[i3+1] = oceanY - Math.random() * 0.4;
+    oPos[i3+2] = (Math.random()-0.5) * 2.2;
+    var gx = (ox + 2.75) / 5.5; if (gx < 0) gx = 0; if (gx > 0.999) gx = 0.999;
+    var ci = Math.floor(gx * oceanColors.length); if (ci >= oceanColors.length) ci = oceanColors.length - 1;
+    var cc = oceanColors[ci];
+    oCol[i3] = cc.r; oCol[i3+1] = cc.g; oCol[i3+2] = cc.b;
+    oSz[i] = 0.3 + Math.random() * 0.5;
+    oRnd[i*2] = Math.random() * 6.28;
+    oRnd[i*2+1] = 0.03 + Math.random() * 0.06;
+  }
+  var oGeo = new THREE.BufferGeometry();
+  oGeo.setAttribute('position', new THREE.BufferAttribute(oPos, 3));
+  oGeo.setAttribute('color', new THREE.BufferAttribute(oCol, 3));
+  oGeo.setAttribute('size', new THREE.BufferAttribute(oSz, 1));
+  var oMat = new THREE.PointsMaterial({size:0.4,map:glowTex,blending:THREE.AdditiveBlending,depthWrite:0,transparent:1,opacity:0.8,vertexColors:1,sizeAttenuation:1});
+  var oMesh = new THREE.Points(oGeo, oMat);
+  grp.add(oMesh); objects.push(oMesh);
 
   var obj = {};
-  obj.id = 'heart'; obj.name = '爱心流水'; obj.objects = [grp, sm];
-  obj.init = function() {
-    scene.add(grp);
-    if (!sm.parent) scene.add(sm);
-  };
+  obj.id = 'heart'; obj.name = '爱心流水'; obj.objects = objects;
+  obj.init = function() { scene.add(grp); };
   obj.destroy = function() {
     scene.remove(grp);
-    if (sm.parent) scene.remove(sm);
-    geo.dispose(); sg.dispose(); mat.dispose(); sm.material.dispose();
+    hGeo.dispose(); hMat.dispose();
+    fGeo.dispose(); fMat.dispose();
+    oGeo.dispose(); oMat.dispose();
   };
   obj.animate = function(dt, el) {
-    grp.rotation.y = Math.sin(el * 0.06) * 0.12;
-    grp.rotation.x = Math.sin(el * 0.04 + 0.5) * 0.03;
-    grp.rotation.z = Math.sin(el * 0.05 + 1.0) * 0.02;
-    var p = geo.attributes.position.array, o = geo.userData.originalPos, r3 = geo.userData.randoms;
-    mat.size = 0.55;
-    mat.opacity = 1;
-    sm.material.opacity = 0.6;
-    for (var i = 0; i < C; i++) {
+    grp.rotation.y = Math.sin(el * 0.05) * 0.08;
+    grp.rotation.x = Math.sin(el * 0.04 + 0.5) * 0.02;
+
+    var hp = hGeo.attributes.position.array, ho = hGeo.userData.originalPos, hr3 = hGeo.userData.randoms;
+    for (var i = 0; i < HC; i++) {
       var i3 = i*3;
-      var ph1 = o[i3]*1.8+o[i3+2]*1.2+el*0.5+r3[i3]*0.3, ph2 = o[i3]*0.7-o[i3+2]*1.5+el*0.35+r3[i3+1]*0.3, f = Math.sin(ph1)*0.012+Math.cos(ph2)*0.008;
-      p[i3] = o[i3]+f*1.2; p[i3+1] = o[i3+1]+f*0.4+Math.sin(o[i3]*1.2+el*0.6)*0.006; p[i3+2] = o[i3+2]+f*0.8;
+      var ph1 = ho[i3]*1.8+ho[i3+2]*1.2+el*0.5+hr3[i3]*0.3;
+      var ph2 = ho[i3]*0.7-ho[i3+2]*1.5+el*0.35+hr3[i3+1]*0.3;
+      var f = Math.sin(ph1)*0.01+Math.cos(ph2)*0.006;
+      hp[i3] = ho[i3]+f; hp[i3+1] = ho[i3+1]+f*0.3+Math.sin(ho[i3]*1.2+el*0.6)*0.005; hp[i3+2] = ho[i3+2]+f*0.6;
     }
-    geo.attributes.position.needsUpdate = 1;
-    sm.rotation.y += dt * 0.25;
-    sm.rotation.x += dt * 0.08;
+    hGeo.attributes.position.needsUpdate = 1;
+
+    var fp = fGeo.attributes.position.array;
+    for (var i = 0; i < FC; i++) {
+      var i3 = i*3;
+      fp[i3+1] -= fSpeed[i] * dt;
+      fp[i3] += Math.sin(el*1.5 + i*0.7) * 0.003;
+      if (fp[i3+1] < fBottom) {
+        fp[i3] = (Math.random()-0.5) * 1.0;
+        fp[i3+1] = fTop + Math.random() * 0.2;
+        fp[i3+2] = (Math.random()-0.5) * 0.5;
+      }
+    }
+    fGeo.attributes.position.needsUpdate = 1;
+
+    var op = oGeo.attributes.position.array;
+    for (var i = 0; i < OC; i++) {
+      var i3 = i*3;
+      op[i3+1] = oceanY - Math.abs(op[i3+2]) * 0.15 + Math.sin(el*0.8 + oRnd[i*2]) * oRnd[i*2+1];
+    }
+    oGeo.attributes.position.needsUpdate = 1;
   };
   obj.burst = function() { };
-  obj.recolor = function() {
-    var ca = geo.attributes.color.array, o = geo.userData.originalPos;
-    var ncL = new THREE.Color(themeColors.out[0]);
-    var ncR = ncL.clone();
-    ncR.offsetHSL(0.13, 0.1, 0.15);
-    for (var i = 0; i < C; i++) {
-      var i3 = i*3, mix = (o[i3] / (16 * scl * 1.2) + 0.5);
-      mix = Math.max(0, Math.min(1, mix));
-      var cs;
-      if (mix < 0.4) { cs = ncL.clone(); }
-      else if (mix > 0.6) { cs = ncR.clone(); }
-      else { cs = ncL.clone().lerp(ncR, (mix - 0.4) * 5); }
-      cs.multiplyScalar(0.6 + Math.random() * 0.5);
-      ca[i3] = cs.r; ca[i3+1] = cs.g; ca[i3+2] = cs.b;
-      origCol[i3] = ca[i3]; origCol[i3+1] = ca[i3+1]; origCol[i3+2] = ca[i3+2];
-    }
-    geo.attributes.color.needsUpdate = 1;
-    sm.material.color = new THREE.Color(themeColors.out[0]).lerp(new THREE.Color('#ffffff'), 0.3);
-  };
+  obj.recolor = function() { };
   return obj;
 }
 
